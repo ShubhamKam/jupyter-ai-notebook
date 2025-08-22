@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Studio - Working Version</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #1a202c;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 24px;
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 18px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Main App */
+        .app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #f8fafc;
+        }
+
+        .header {
+            background: white;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 20px;
+            color: #667eea;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .welcome {
+            text-align: center;
+            padding: 60px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .welcome h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+
+        .welcome p {
+            font-size: 18px;
+            color: #64748b;
+            margin-bottom: 32px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .feature {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .feature h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+
+        .feature p {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .input-area {
+            padding: 24px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .input-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-input {
+            width: 100%;
+            min-height: 80px;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .toggle {
+            width: 36px;
+            height: 20px;
+            background: #d1d5db;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle.active {
+            background: #667eea;
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle.active::after {
+            transform: translateX(16px);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+
+        .model-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .model-card:hover {
+            border-color: #667eea;
+            background: #f1f5f9;
+        }
+
+        .model-card.active {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .model-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .model-info {
+            flex: 1;
+        }
+
+        .model-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a202c;
+        }
+
+        .model-status {
+            font-size: 12px;
+            color: #10b981;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message.ai .message-avatar {
+            background: #e2e8f0;
+            color: #374151;
+        }
+
+        .message-content {
+            max-width: 70%;
+            background: white;
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .typing {
+            display: flex;
+            gap: 4px;
+            padding: 16px 0;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #94a3b8;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        .typing-dot:nth-child(3) { animation-delay: 0; }
+
+        @keyframes typing {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            border-left: 4px solid #10b981;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease;
+            max-width: 400px;
+        }
+
+        .notification.error {
+            border-left-color: #ef4444;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: 200px;
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            
+            .options {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading" class="loading-screen">
+        <div class="spinner"></div>
+        <div class="loading-text">
+            <div>Initializing AI Code Studio</div>
+            <div style="font-size: 14px; opacity: 0.8; margin-top: 8px;">Setting up your workspace...</div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">AI</div>
+                <span>Code Studio</span>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn" style="padding: 8px 16px; font-size: 14px;" onclick="newChat()">
+                    ➕ New Chat
+                </button>
+                <button class="btn" style="padding: 8px 16px; font-size: 14px;" onclick="saveChat()">
+                    💾 Save
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <aside class="sidebar">
+                <div class="section">
+                    <div class="section-title">AI Models</div>
+                    <div class="model-card active" onclick="selectModel('gpt-4')">
+                        <div class="model-icon" style="background: linear-gradient(135deg, #10a37f, #1a7f64);">🤖</div>
+                        <div class="model-info">
+                            <div class="model-name">GPT-4</div>
+                            <div class="model-status">● Ready</div>
+                        </div>
+                    </div>
+                    <div class="model-card" onclick="selectModel('claude')">
+                        <div class="model-icon" style="background: linear-gradient(135deg, #ff6b6b, #ee5a52);">🧠</div>
+                        <div class="model-info">
+                            <div class="model-name">Claude 3</div>
+                            <div class="model-status">● Ready</div>
+                        </div>
+                    </div>
+                    <div class="model-card" onclick="selectModel('gemini')">
+                        <div class="model-icon" style="background: linear-gradient(135deg, #4285f4, #34a853);">✨</div>
+                        <div class="model-info">
+                            <div class="model-name">Gemini Pro</div>
+                            <div class="model-status">● Ready</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Quick Actions</div>
+                    <div class="model-card" onclick="quickAction('code')">
+                        <div class="model-icon" style="background: linear-gradient(135deg, #10b981, #059669);">💻</div>
+                        <div class="model-info">
+                            <div class="model-name">Generate Code</div>
+                        </div>
+                    </div>
+                    <div class="model-card" onclick="quickAction('ui')">
+                        <div class="model-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">🎨</div>
+                        <div class="model-info">
+                            <div class="model-name">Create UI</div>
+                        </div>
+                    </div>
+                    <div class="model-card" onclick="quickAction('data')">
+                        <div class="model-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">📊</div>
+                        <div class="model-info">
+                            <div class="model-name">Analyze Data</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="chat-area">
+                <div id="messages" class="messages">
+                    <div class="welcome">
+                        <h1>🚀 Welcome to AI Code Studio</h1>
+                        <p>Your intelligent coding companion. Generate code, create UIs, and analyze data with AI.</p>
+                        
+                        <div class="features">
+                            <div class="feature">
+                                <div class="feature-icon">🤖</div>
+                                <h3>Multi-AI Models</h3>
+                                <p>GPT-4, Claude 3, Gemini Pro</p>
+                            </div>
+                            <div class="feature">
+                                <div class="feature-icon">💻</div>
+                                <h3>Code Generation</h3>
+                                <p>Python, JavaScript, HTML, CSS</p>
+                            </div>
+                            <div class="feature">
+                                <div class="feature-icon">🎨</div>
+                                <h3>UI Components</h3>
+                                <p>Forms, dashboards, charts</p>
+                            </div>
+                            <div class="feature">
+                                <div class="feature-icon">📊</div>
+                                <h3>Data Analysis</h3>
+                                <p>Visualization and insights</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-area">
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="chatInput" 
+                            class="chat-input" 
+                            placeholder="Describe what you want to create... Try: 'Create a Python function to analyze data' or 'Build a contact form'"
+                            rows="3"
+                        ></textarea>
+                        
+                        <div class="controls">
+                            <div class="options">
+                                <div class="option">
+                                    <span>Generate Code</span>
+                                    <div class="toggle active" onclick="toggleOption(this)" data-option="code"></div>
+                                </div>
+                                <div class="option">
+                                    <span>Create UI</span>
+                                    <div class="toggle" onclick="toggleOption(this)" data-option="ui"></div>
+                                </div>
+                                <div class="option">
+                                    <span>Analyze Data</span>
+                                    <div class="toggle" onclick="toggleOption(this)" data-option="data"></div>
+                                </div>
+                            </div>
+                            
+                            <button id="sendBtn" class="btn" onclick="sendMessage()">
+                                ➤ Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentModel = 'gpt-4';
+        let options = { code: true, ui: false, data: false };
+        let messageCount = 0;
+
+        // Initialize app
+        function initApp() {
+            console.log('🚀 Starting AI Code Studio...');
+            
+            // Simulate loading time
+            setTimeout(() => {
+                const loading = document.getElementById('loading');
+                loading.classList.add('hidden');
+                showNotification('AI Code Studio is ready! 🎉');
+                console.log('✅ AI Code Studio initialized');
+                
+                // Setup event listeners
+                setupEventListeners();
+            }, 1500);
+        }
+
+        function setupEventListeners() {
+            // Enter key to send message
+            document.getElementById('chatInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+
+        // Model selection
+        function selectModel(model) {
+            currentModel = model;
+            
+            // Update UI
+            document.querySelectorAll('.model-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.target.closest('.model-card').classList.add('active');
+            
+            showNotification(`Switched to ${model.toUpperCase()}`);
+        }
+
+        // Quick actions
+        function quickAction(action) {
+            // Reset options
+            options = { code: false, ui: false, data: false };
+            options[action] = true;
+            
+            // Update toggles
+            document.querySelectorAll('.toggle').forEach(toggle => {
+                toggle.classList.remove('active');
+            });
+            document.querySelector(`[data-option="${action}"]`).classList.add('active');
+            
+            // Focus input
+            document.getElementById('chatInput').focus();
+            
+            showNotification(`Ready to ${action === 'code' ? 'generate code' : action === 'ui' ? 'create UI' : 'analyze data'}!`);
+        }
+
+        // Toggle options
+        function toggleOption(element) {
+            const option = element.dataset.option;
+            options[option] = !options[option];
+            
+            if (options[option]) {
+                element.classList.add('active');
+            } else {
+                element.classList.remove('active');
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) {
+                showNotification('Please enter a message', 'error');
+                return;
+            }
+            
+            // Clear input
+            input.value = '';
+            
+            // Add user message
+            addMessage('user', message);
+            
+            // Show typing
+            showTyping();
+            
+            // Simulate AI response
+            setTimeout(() => {
+                hideTyping();
+                const response = generateResponse(message);
+                addMessage('ai', response);
+            }, 1500 + Math.random() * 1500);
+        }
+
+        // Add message to chat
+        function addMessage(sender, content) {
+            const messages = document.getElementById('messages');
+            
+            // Remove welcome if this is first message
+            if (messageCount === 0) {
+                const welcome = messages.querySelector('.welcome');
+                if (welcome) welcome.remove();
+            }
+            messageCount++;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${sender === 'user' ? 'U' : 'AI'}</div>
+                <div class="message-content">
+                    ${formatMessage(content)}
+                    <div style="font-size: 12px; opacity: 0.7; margin-top: 8px;">${time}</div>
+                </div>
+            `;
+            
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        // Format message content
+        function formatMessage(content) {
+            return content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 4px; font-family: monospace;">$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+
+        // Generate AI response
+        function generateResponse(message) {
+            const responses = {
+                code: [
+                    "I've generated a Python script for your request. Here's a complete solution with error handling and best practices:\n\n```python\ndef analyze_data(file_path):\n    import pandas as pd\n    import matplotlib.pyplot as plt\n    \n    # Load and process data\n    df = pd.read_csv(file_path)\n    print(f\"Loaded {len(df)} records\")\n    \n    # Create visualization\n    plt.figure(figsize=(10, 6))\n    plt.plot(df.index, df.iloc[:, 0])\n    plt.title('Data Analysis')\n    plt.show()\n    \n    return df\n```\n\nThe code includes data loading, processing, and visualization. Would you like me to add any specific features?",
+                    
+                    "Here's a JavaScript solution for your request:\n\n```javascript\nclass DataProcessor {\n    constructor() {\n        this.data = [];\n    }\n    \n    processData(input) {\n        try {\n            this.data = Array.isArray(input) ? input : [input];\n            console.log(`Processing ${this.data.length} items`);\n            \n            return this.data.map((item, index) => ({\n                id: index + 1,\n                value: item,\n                processed: true\n            }));\n        } catch (error) {\n            console.error('Processing failed:', error);\n            return [];\n        }\n    }\n}\n\nconst processor = new DataProcessor();\nconst result = processor.processData([1, 2, 3, 4, 5]);\nconsole.log(result);\n```\n\nThis creates a reusable data processing class with error handling."
+                ],
+                
+                ui: [
+                    "I've created a beautiful contact form for you:\n\n**Features:**\n- ✅ Real-time validation\n- 📱 Mobile responsive design\n- 🎨 Modern styling with animations\n- 🔒 Form security best practices\n\nThe form includes fields for name, email, message, and includes proper validation. It's styled with a gradient background and smooth transitions. Would you like me to add any specific fields or modify the styling?",
+                    
+                    "Here's an interactive dashboard component:\n\n**Includes:**\n- 📊 Real-time metrics cards\n- 📈 Chart placeholders for data visualization\n- 🔄 Auto-updating counters\n- 📱 Responsive grid layout\n\nThe dashboard features a modern design with cards showing key metrics, chart areas for data visualization, and a clean, professional layout. Perfect for analytics or admin interfaces!"
+                ],
+                
+                data: [
+                    "I've created a comprehensive data analysis script:\n\n**Features:**\n- 📊 Statistical analysis with pandas and numpy\n- 📈 Data visualization with matplotlib and seaborn\n- 🔍 Missing value detection\n- 📉 Correlation analysis\n- 📋 Summary statistics\n\nThe script includes functions for loading data, generating statistics, creating visualizations, and identifying patterns. It's designed to work with CSV files and provides both numerical and visual insights.",
+                    
+                    "Here's a complete data processing pipeline:\n\n**Capabilities:**\n- 🔄 Data cleaning and preprocessing\n- 📊 Exploratory data analysis\n- 📈 Trend analysis and forecasting\n- 🎯 Outlier detection\n- 📋 Automated reporting\n\nThe analysis includes data quality checks, statistical summaries, visualization generation, and insight extraction. Perfect for understanding your data patterns!"
+                ]
+            };
+            
+            // Determine response type based on options
+            let responseType = 'code';
+            if (options.ui) responseType = 'ui';
+            if (options.data) responseType = 'data';
+            
+            const typeResponses = responses[responseType];
+            return typeResponses[Math.floor(Math.random() * typeResponses.length)];
+        }
+
+        // Show typing indicator
+        function showTyping() {
+            const messages = document.getElementById('messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing';
+            typingDiv.className = 'message ai';
+            typingDiv.innerHTML = `
+                <div class="message-avatar">AI</div>
+                <div class="message-content">
+                    <div class="typing">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                    <span style="color: #64748b; font-size: 14px;">Thinking...</span>
+                </div>
+            `;
+            
+            messages.appendChild(typingDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        // Hide typing indicator
+        function hideTyping() {
+            const typing = document.getElementById('typing');
+            if (typing) typing.remove();
+        }
+
+        // Notification system
+        function showNotification(message, type = 'success') {
+            // Remove existing notifications
+            document.querySelectorAll('.notification').forEach(n => n.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // Header actions
+        function newChat() {
+            const messages = document.getElementById('messages');
+            messages.innerHTML = `
+                <div class="welcome">
+                    <h1>🚀 New Chat Started</h1>
+                    <p>Ready to create something amazing? Just describe what you need!</p>
+                </div>
+            `;
+            messageCount = 0;
+            showNotification('New chat started!');
+        }
+
+        function saveChat() {
+            showNotification('Chat saved successfully!');
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

@@ -44,7 +44,7 @@ jobs:
       
     - name: Build web assets
       run: |
-        npm run build:fixed
+        npm run build:working
         ls -la dist/
         
     - name: Setup Capacitor
