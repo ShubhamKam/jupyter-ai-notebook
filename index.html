@@ -1541,6 +1541,9 @@
                 <button class="icon-button" id="test-claude-cli" title="Test Claude CLI">
                     <span class="material-symbols-rounded">check_circle</span>
                 </button>
+                <button class="icon-button" id="quick-claude-test" title="Quick Claude Test">
+                    <span class="material-symbols-rounded">flash_on</span>
+                </button>
                 <button class="icon-button" id="save-btn" title="Save Notebook">
                     <span class="material-symbols-rounded">save</span>
                 </button>
@@ -1871,6 +1874,7 @@
                 this.bindEvent('run-all-btn', 'click', () => this.runAllBlocks());
                 this.bindEvent('start-bridge-service', 'click', () => this.startBridgeService());
                 this.bindEvent('test-claude-cli', 'click', () => this.testClaudeCLI());
+                this.bindEvent('quick-claude-test', 'click', () => this.quickClaudeTest());
                 this.bindEvent('settings-btn', 'click', () => this.showModal('settings-modal'));
                 this.bindEvent('upload-btn', 'click', () => {
                     const fileInput = document.getElementById('file-upload');
@@ -3825,8 +3829,33 @@ Please provide a clear, helpful response.`;
                     // Update Claude CLI status indicator
                     this.updateClaudeCLIStatus('connecting');
                     
-                    // Method 1: Claude CLI Bridge Service (Primary method)
-                    // Try to connect to the local Claude CLI bridge service first
+                    // Method 1: Direct Termux API (Simplest approach)
+                    if (command.includes('claude') && window.TermuxAPI) {
+                        try {
+                            console.log('🚀 Using direct Termux API...');
+                            const result = await window.TermuxAPI.runCommand(command);
+                            this.updateClaudeCLIStatus('connected');
+                            console.log('✅ Direct Termux API successful');
+                            return result.output || result.stdout || result || 'Command executed successfully';
+                        } catch (directError) {
+                            console.log('⚠️ Direct Termux API failed:', directError.message);
+                        }
+                    }
+                    
+                    // Method 2: Android Interface (Simple)
+                    if (command.includes('claude') && typeof Android !== 'undefined' && Android.executeCommand) {
+                        try {
+                            console.log('🚀 Using Android interface...');
+                            const result = Android.executeCommand(command);
+                            this.updateClaudeCLIStatus('connected');
+                            console.log('✅ Android interface successful');
+                            return result || 'Command executed successfully';
+                        } catch (androidError) {
+                            console.log('⚠️ Android interface failed:', androidError.message);
+                        }
+                    }
+                    
+                    // Method 3: Try Bridge Service (Fallback)
                     if (command.includes('claude')) {
                         try {
                             console.log('🚀 Trying Claude CLI bridge service...');
@@ -5387,6 +5416,76 @@ console.log(analyzeData(result));`;
                     event.target.closest('.nav-item').classList.add('active');
                 }
                 
+                // Handle the view switching
+                this.handleViewSwitch(viewName);
+            }
+            
+            async testDirectIntegration() {
+                // Simple test for direct Claude CLI integration
+                console.log('🧪 Testing direct Claude CLI integration...');
+                
+                // Test all available methods
+                const testMethods = [
+                    { name: 'TermuxAPI', available: !!window.TermuxAPI },
+                    { name: 'Android Interface', available: typeof Android !== 'undefined' && !!Android.executeCommand },
+                    { name: 'TermuxPlugin', available: !!window.TermuxPlugin }
+                ];
+                
+                console.log('📱 Available integration methods:');
+                testMethods.forEach(method => {
+                    console.log(`  ${method.name}: ${method.available ? '✅ Available' : '❌ Not Available'}`);
+                });
+                
+                // Try a simple command
+                try {
+                    const result = await this.executeTermuxCommand('echo "Integration test successful"');
+                    this.showNotification('🎉 Direct integration working!', 'success');
+                    console.log('✅ Direct integration test result:', result);
+                    return true;
+                } catch (error) {
+                    this.showNotification('⚠️ Direct integration not available, using simulation', 'warning');
+                    console.log('❌ Direct integration test failed:', error.message);
+                    return false;
+                }
+            }
+            
+            async quickClaudeTest() {
+                // Ultra-simple Claude CLI test
+                this.showNotification('🔄 Testing Claude CLI...', 'info');
+                
+                if (window.TermuxAPI) {
+                    try {
+                        const result = await window.TermuxAPI.runCommand('claude --version');
+                        if (result && (result.output || result.stdout)) {
+                            const version = result.output || result.stdout;
+                            this.updateClaudeCLIStatus('connected');
+                            this.showNotification(`✅ Claude CLI found: ${version.trim()}`, 'success');
+                            return true;
+                        }
+                    } catch (error) {
+                        console.log('TermuxAPI test failed:', error);
+                    }
+                }
+                
+                if (typeof Android !== 'undefined' && Android.executeCommand) {
+                    try {
+                        const result = Android.executeCommand('claude --version');
+                        if (result) {
+                            this.updateClaudeCLIStatus('connected');
+                            this.showNotification(`✅ Claude CLI found via Android: ${result}`, 'success');
+                            return true;
+                        }
+                    } catch (error) {
+                        console.log('Android interface test failed:', error);
+                    }
+                }
+                
+                this.updateClaudeCLIStatus('simulation');
+                this.showNotification('💡 Claude CLI not directly accessible. Using simulation mode.', 'info');
+                return false;
+            }
+            
+            handleViewSwitch(viewName) {
                 // Handle different views
                 switch(viewName) {
                     case 'home':

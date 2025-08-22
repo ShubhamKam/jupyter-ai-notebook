@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Direct Claude CLI Integration Test</title>
+    <style>
+        body { 
+            font-family: system-ui; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: white;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        button { 
+            padding: 12px 20px; 
+            margin: 10px; 
+            border: none; 
+            background: #6750A4; 
+            color: white; 
+            border-radius: 8px; 
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 200px;
+        }
+        button:hover { background: #553098; }
+        button:disabled { background: #444; cursor: not-allowed; }
+        #results { 
+            background: #2a2a2a; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-top: 20px; 
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        .info { color: #60a5fa; }
+        .warning { color: #fbbf24; }
+        .method { 
+            background: #374151; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin: 10px 0;
+            border-left: 4px solid #6750A4;
+        }
+        .method h3 { margin-top: 0; color: #60a5fa; }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background: #2a2a2a;
+            color: white;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Simple Direct Claude CLI Integration</h1>
+    <p>This shows how much <strong>easier</strong> direct integration can be compared to bridge services!</p>
+    
+    <div class="method">
+        <h3>🔥 Method 1: Direct Termux API (Simplest!)</h3>
+        <p>No bridge service needed - direct command execution</p>
+        <button onclick="testTermuxAPI()">Test Direct Termux API</button>
+        <div id="termux-status"></div>
+    </div>
+    
+    <div class="method">
+        <h3>🤖 Method 2: Android Interface</h3>
+        <p>Simple Android WebView integration</p>
+        <button onclick="testAndroid()">Test Android Interface</button>
+        <div id="android-status"></div>
+    </div>
+    
+    <div class="method">
+        <h3>⚡ Method 3: Custom Command Test</h3>
+        <input type="text" id="custom-command" placeholder="Enter Claude CLI command (e.g., 'claude --version')" value="claude --version">
+        <button onclick="testCustomCommand()">Execute Command</button>
+        <div id="custom-status"></div>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const time = new Date().toLocaleTimeString();
+            const className = type;
+            results.innerHTML += `<span class="${className}">[${time}] ${message}</span>\n`;
+            results.scrollTop = results.scrollHeight;
+            console.log(message);
+        }
+
+        function updateStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<span class="${type}">${message}</span>`;
+        }
+
+        async function testTermuxAPI() {
+            log('🔍 Testing Direct Termux API Integration...', 'info');
+            updateStatus('termux-status', 'Testing...', 'warning');
+            
+            if (window.TermuxAPI) {
+                log('✅ TermuxAPI object found!', 'success');
+                updateStatus('termux-status', '✅ TermuxAPI Available', 'success');
+                
+                try {
+                    log('🚀 Executing: claude --version', 'info');
+                    const result = await window.TermuxAPI.runCommand('claude --version');
+                    
+                    if (result && (result.output || result.stdout)) {
+                        const output = result.output || result.stdout;
+                        log(`✅ SUCCESS: ${output}`, 'success');
+                        updateStatus('termux-status', `✅ Working: ${output.trim()}`, 'success');
+                        
+                        // Try a simple AI prompt
+                        log('🤖 Testing AI prompt...', 'info');
+                        const aiResult = await window.TermuxAPI.runCommand('echo "Hello Claude" | claude -p');
+                        if (aiResult && (aiResult.output || aiResult.stdout)) {
+                            log(`🎉 AI Response: ${(aiResult.output || aiResult.stdout).substring(0, 100)}...`, 'success');
+                        }
+                    } else {
+                        log('❌ No output from command', 'error');
+                        updateStatus('termux-status', '❌ No output received', 'error');
+                    }
+                    
+                } catch (error) {
+                    log(`❌ TermuxAPI Error: ${error.message}`, 'error');
+                    updateStatus('termux-status', `❌ Error: ${error.message}`, 'error');
+                }
+            } else {
+                log('❌ TermuxAPI not available', 'error');
+                updateStatus('termux-status', '❌ Not Available', 'error');
+            }
+        }
+
+        async function testAndroid() {
+            log('🤖 Testing Android Interface...', 'info');
+            updateStatus('android-status', 'Testing...', 'warning');
+            
+            if (typeof Android !== 'undefined' && Android.executeCommand) {
+                log('✅ Android interface found!', 'success');
+                updateStatus('android-status', '✅ Android Interface Available', 'success');
+                
+                try {
+                    log('🚀 Executing: claude --version', 'info');
+                    const result = Android.executeCommand('claude --version');
+                    
+                    if (result) {
+                        log(`✅ SUCCESS: ${result}`, 'success');
+                        updateStatus('android-status', `✅ Working: ${result}`, 'success');
+                    } else {
+                        log('❌ No result from Android interface', 'error');
+                        updateStatus('android-status', '❌ No result', 'error');
+                    }
+                    
+                } catch (error) {
+                    log(`❌ Android Error: ${error.message}`, 'error');
+                    updateStatus('android-status', `❌ Error: ${error.message}`, 'error');
+                }
+            } else {
+                log('❌ Android interface not available', 'error');
+                updateStatus('android-status', '❌ Not Available', 'error');
+            }
+        }
+
+        async function testCustomCommand() {
+            const command = document.getElementById('custom-command').value;
+            if (!command.trim()) {
+                updateStatus('custom-status', '❌ Please enter a command', 'error');
+                return;
+            }
+            
+            log(`🔧 Testing custom command: ${command}`, 'info');
+            updateStatus('custom-status', 'Executing...', 'warning');
+            
+            // Try all available methods
+            const methods = [
+                { name: 'TermuxAPI', test: () => window.TermuxAPI?.runCommand(command) },
+                { name: 'Android', test: () => typeof Android !== 'undefined' && Android.executeCommand ? Android.executeCommand(command) : null }
+            ];
+            
+            let success = false;
+            
+            for (const method of methods) {
+                try {
+                    if (method.test) {
+                        log(`🔍 Trying ${method.name}...`, 'info');
+                        const result = await method.test();
+                        
+                        if (result && (result.output || result.stdout || result)) {
+                            const output = result.output || result.stdout || result;
+                            log(`✅ ${method.name} SUCCESS: ${output.substring(0, 200)}`, 'success');
+                            updateStatus('custom-status', `✅ ${method.name}: Success`, 'success');
+                            success = true;
+                            break;
+                        }
+                    }
+                } catch (error) {
+                    log(`❌ ${method.name} failed: ${error.message}`, 'error');
+                }
+            }
+            
+            if (!success) {
+                log('❌ All methods failed', 'error');
+                updateStatus('custom-status', '❌ All methods failed', 'error');
+            }
+        }
+
+        // Auto-check on load
+        window.onload = function() {
+            log('🧪 Simple Direct Integration Test Started', 'info');
+            log('📱 Available methods:', 'info');
+            log(`  - TermuxAPI: ${window.TermuxAPI ? 'Available ✅' : 'Not Available ❌'}`, 'info');
+            log(`  - Android: ${(typeof Android !== 'undefined' && Android.executeCommand) ? 'Available ✅' : 'Not Available ❌'}`, 'info');
+            log(`  - TermuxPlugin: ${window.TermuxPlugin ? 'Available ✅' : 'Not Available ❌'}`, 'info');
+            
+            log('\n💡 Benefits of Direct Integration:', 'info');
+            log('  ✅ No bridge service needed', 'success');
+            log('  ✅ Simpler code', 'success');
+            log('  ✅ Faster execution', 'success');
+            log('  ✅ Less error-prone', 'success');
+            log('  ✅ No port conflicts', 'success');
+            log('  ✅ No Node.js dependencies', 'success');
+        };
+    </script>
+</body>
+</html>
