@@ -1516,6 +1516,9 @@
                 <div id="claude-cli-status" class="claude-cli-indicator unavailable" title="Claude CLI Status">
                     <span class="material-symbols-rounded">help</span>
                 </div>
+                <button class="icon-button" id="start-bridge-service" title="Start Claude CLI Bridge Service">
+                    <span class="material-symbols-rounded">play_arrow</span>
+                </button>
                 <button class="icon-button" id="test-claude-cli" title="Test Claude CLI">
                     <span class="material-symbols-rounded">check_circle</span>
                 </button>
@@ -1847,6 +1850,7 @@
                 // Header buttons
                 this.bindEvent('save-btn', 'click', () => this.saveNotebook());
                 this.bindEvent('run-all-btn', 'click', () => this.runAllBlocks());
+                this.bindEvent('start-bridge-service', 'click', () => this.startBridgeService());
                 this.bindEvent('test-claude-cli', 'click', () => this.testClaudeCLI());
                 this.bindEvent('settings-btn', 'click', () => this.showModal('settings-modal'));
                 this.bindEvent('upload-btn', 'click', () => {
@@ -3839,14 +3843,37 @@ Please provide a clear, helpful response.`;
                         } catch (fetchError) {
                             console.warn('Claude CLI bridge service not available:', fetchError.message);
                             
-                            // Try to auto-start bridge service via Termux if available
+                            // Try to auto-start bridge service via Termux API
                             try {
+                                console.log('🔄 Attempting to auto-start Claude CLI bridge service...');
+                                
+                                // Method 1: Termux API (preferred)
+                                if (window.TermuxAPI) {
+                                    console.log('🚀 Using Termux API to start bridge service...');
+                                    const startCommand = 'cd /data/data/com.termux/files/home/jupyter-ai/jupyter-ai/dist && node claude-cli-bridge.js &';
+                                    await window.TermuxAPI.runCommand(startCommand);
+                                    this.showNotification('⚡ Starting Claude CLI bridge service via Termux API...', 'info');
+                                    await this.delay(4000);
+                                    return this.executeTermuxCommand(command, attachments);
+                                }
+                                
+                                // Method 2: Android Interface
                                 if (typeof Android !== 'undefined' && Android.executeCommand) {
-                                    console.log('🔄 Attempting to auto-start Claude CLI bridge service...');
-                                    Android.executeCommand('cd /data/data/com.termux/files/home && node claude-cli-bridge.js &');
-                                    this.showNotification('⚡ Attempting to auto-start Claude CLI bridge service...', 'info');
-                                    // Wait a moment then retry the command
-                                    await this.delay(3000);
+                                    console.log('🚀 Using Android interface to start bridge service...');
+                                    Android.executeCommand('cd /data/data/com.termux/files/home/jupyter-ai/jupyter-ai/dist && node claude-cli-bridge.js &');
+                                    this.showNotification('⚡ Starting Claude CLI bridge service...', 'info');
+                                    await this.delay(4000);
+                                    return this.executeTermuxCommand(command, attachments);
+                                }
+                                
+                                // Method 3: Capacitor Plugin
+                                if (window.TermuxPlugin) {
+                                    console.log('🚀 Using Capacitor plugin to start bridge service...');
+                                    await window.TermuxPlugin.execute({ 
+                                        command: 'cd /data/data/com.termux/files/home/jupyter-ai/jupyter-ai/dist && node claude-cli-bridge.js &' 
+                                    });
+                                    this.showNotification('⚡ Starting Claude CLI bridge service...', 'info');
+                                    await this.delay(4000);
                                     return this.executeTermuxCommand(command, attachments);
                                 }
                             } catch (autoStartError) {
@@ -3988,6 +4015,68 @@ Please provide a clear, helpful response.`;
                 } catch (error) {
                     console.error('Claude CLI test failed:', error);
                     this.showNotification(`Claude CLI Test Failed: ${error.message}`, 'error');
+                }
+            }
+
+            async startBridgeService() {
+                try {
+                    console.log('🚀 Manual bridge service start initiated...');
+                    this.showNotification('⚡ Starting Claude CLI bridge service...', 'info');
+                    
+                    // Try Termux API first (preferred)
+                    if (window.TermuxAPI) {
+                        console.log('🔧 Using Termux API to start bridge service...');
+                        const startCommand = 'cd /data/data/com.termux/files/home/jupyter-ai/jupyter-ai/dist && node claude-cli-bridge.js &';
+                        await window.TermuxAPI.runCommand(startCommand);
+                        this.showNotification('✅ Bridge service started via Termux API!', 'success');
+                        this.updateClaudeCLIStatus('connecting');
+                        
+                        // Test connection after a delay
+                        setTimeout(async () => {
+                            try {
+                                const response = await fetch('http://127.0.0.1:3001/api/health');
+                                if (response.ok) {
+                                    this.updateClaudeCLIStatus('connected');
+                                    this.showNotification('🎉 Claude CLI bridge service is now running!', 'success');
+                                } else {
+                                    this.updateClaudeCLIStatus('error');
+                                    this.showNotification('⚠️ Bridge service may have failed to start', 'warning');
+                                }
+                            } catch (testError) {
+                                this.updateClaudeCLIStatus('simulation');
+                                this.showNotification('⚠️ Bridge service not responding, using simulation mode', 'warning');
+                            }
+                        }, 3000);
+                        return;
+                    }
+                    
+                    // Try Android interface
+                    if (typeof Android !== 'undefined' && Android.executeCommand) {
+                        console.log('🔧 Using Android interface to start bridge service...');
+                        Android.executeCommand('cd /data/data/com.termux/files/home/jupyter-ai/jupyter-ai/dist && node claude-cli-bridge.js &');
+                        this.showNotification('✅ Attempted to start bridge service via Android interface!', 'success');
+                        this.updateClaudeCLIStatus('connecting');
+                        return;
+                    }
+                    
+                    // Try Capacitor plugin
+                    if (window.TermuxPlugin) {
+                        console.log('🔧 Using Capacitor plugin to start bridge service...');
+                        await window.TermuxPlugin.execute({ 
+                            command: 'cd /data/data/com.termux/files/home/jupyter-ai/jupyter-ai/dist && node claude-cli-bridge.js &' 
+                        });
+                        this.showNotification('✅ Attempted to start bridge service via Capacitor!', 'success');
+                        this.updateClaudeCLIStatus('connecting');
+                        return;
+                    }
+                    
+                    // No method available
+                    this.showNotification('❌ No Termux integration available. Install Termux and Claude CLI to enable real responses.', 'error');
+                    
+                } catch (error) {
+                    console.error('Bridge service start failed:', error);
+                    this.showNotification(`❌ Failed to start bridge service: ${error.message}`, 'error');
+                    this.updateClaudeCLIStatus('error');
                 }
             }
 
