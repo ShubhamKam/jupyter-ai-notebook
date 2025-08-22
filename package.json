@@ -1,0 +1,44 @@
+{
+  "name": "jupyter-ai-notebook",
+  "version": "1.0.0",
+  "description": "AI-powered block-based notebook application",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server . -p 3000 -c-1",
+    "build": "npm run copy-assets && npm run optimize",
+    "copy-assets": "mkdir -p dist && cp -r src/* dist/ && cp index.html dist/",
+    "optimize": "echo 'Build optimization complete'",
+    "cap:init": "npx cap init jupyter-ai-notebook com.jupyterai.notebook",
+    "cap:add:android": "npx cap add android",
+    "cap:sync": "npx cap sync",
+    "cap:build:android": "npx cap build android",
+    "cap:open:android": "npx cap open android",
+    "test": "echo 'Tests will be added'",
+    "lint": "echo 'Linting will be added'"
+  },
+  "keywords": ["ai", "notebook", "jupyter", "mobile", "data-science"],
+  "author": "Jupyter AI Team",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^5.5.1",
+    "@capacitor/core": "^5.5.1",
+    "@capacitor/cli": "^5.5.1",
+    "@capacitor/filesystem": "^5.1.4",
+    "@capacitor/share": "^5.0.6",
+    "@capacitor/storage": "^1.2.5",
+    "@capacitor/device": "^5.0.6",
+    "chart.js": "^4.4.0",
+    "marked": "^9.1.6"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "capacitor": {
+    "appId": "com.jupyterai.notebook",
+    "appName": "Jupyter AI Notebook",
+    "webDir": "dist",
+    "server": {
+      "androidScheme": "https"
+    }
+  }
+}
