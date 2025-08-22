@@ -1,6 +1,4 @@
-import { CapacitorConfig } from '@capacitor/cli';
-
-const config: CapacitorConfig = {
+const config = {
   appId: 'com.jupyterai.notebook',
   appName: 'Jupyter AI Notebook',
   webDir: 'dist',
@@ -28,4 +26,4 @@ const config: CapacitorConfig = {
   }
 };
 
-export default config;
+module.exports = config;

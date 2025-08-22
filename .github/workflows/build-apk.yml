@@ -50,7 +50,7 @@ jobs:
     - name: Setup Capacitor
       run: |
         npm install -g @capacitor/cli
-        npx cap init "Jupyter AI Notebook" "com.jupyterai.notebook" --web-dir=dist
+        # Capacitor is already configured via capacitor.config.js
         
     - name: Add Android platform
       run: |
