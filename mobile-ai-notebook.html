@@ -2790,23 +2790,6 @@ Based on your prompt: "${prompt}"
                     content: 'SQL query executed successfully (simulation mode)'
                 }];
             }
-                
-                if (code.includes('pandas') || code.includes('df.')) {
-                    output += '\n📋 DataFrame processed and stored';
-                    this.dataStore.set('dataframe', this.generateSampleDataForChart('line'));
-                }
-                
-                if (!output) {
-                    output = `✅ ${language} code executed successfully on mobile\n\nCode executed:\n${code.substring(0, 100)}${code.length > 100 ? '...' : ''}`;
-                }
-                
-                return [{
-                    type: outputType,
-                    title: `${language} Execution`,
-                    content: output,
-                    execution_time: 0.5 + Math.random() * 2
-                }];
-            }
 
             async executeDataTable(block) {
                 const dataSource = block.content.dataSource;
