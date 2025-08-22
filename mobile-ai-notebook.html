@@ -3084,66 +3084,18 @@ Return a JSON configuration object that will work well with this data.`;
                     throw new Error('Please enter a prompt before executing');
                 }
 
-                // If Claude CLI is selected, always try to use it first
-                if (model === 'claude-cli' || !model || model === 'claude-3-sonnet') {
-                    try {
-                        const response = await this.callAIAPI(model, prompt, this.getContext(block), attachments);
-                        
-                        return [{
-                            type: 'text',
-                            title: 'Claude CLI Response',
-                            content: response
-                        }];
-                    } catch (error) {
-                        // If Claude CLI fails, show error message
-                        return [{
-                            type: 'error',
-                            title: 'Claude CLI Error',
-                            content: `Failed to connect to Claude CLI: ${error.message}\n\n💡 Make sure:\n1. Claude CLI is installed in Termux\n2. The bridge service is running\n3. Or add API keys in Settings for fallback`
-                        }];
-                    }
-                }
-
-                const apiKey = this.getApiKeyForModel(model);
-                if (!apiKey) {
-                    // Provide helpful demo response if no API key
-                    let attachmentInfo = '';
-                    if (attachments.length > 0) {
-                        attachmentInfo = `\n\n📎 **Attachments:** ${attachments.length} file${attachments.length > 1 ? 's' : ''} (${attachments.map(a => a.name).join(', ')})`;
-                    }
-                    
-                    return [{
-                        type: 'text',
-                        title: `${model.toUpperCase()} Demo Response`,
-                        content: `📋 Demo Response (Configure API key in Settings for real AI):
-
-Based on your prompt: "${prompt}"${attachmentInfo}
-
-🔍 **Analysis:**
-- Identified data analysis request
-- Suggested approach: Use statistical methods
-- Recommended visualization: Interactive charts
-
-💡 **Next Steps:**
-1. Configure API keys in Settings
-2. Upload your data files
-3. Run code blocks for analysis
-
-🤖 *This is a demo response. Add your API key to get real AI responses.*`
-                    }];
-                }
-
                 try {
                     const response = await this.callAIAPI(model, prompt, this.getContext(block), attachments);
                     
                     return [{
                         type: 'text',
-                        title: `${model.toUpperCase()} Response`,
+                        title: model === 'claude-cli' ? 'Claude CLI Response' : `${(model || 'AI').toUpperCase()} Response`,
                         content: response
                     }];
                 } catch (error) {
                     throw new Error(`AI API Error: ${error.message}`);
                 }
+
             }
 
             async executeCode(block) {
@@ -3850,30 +3802,67 @@ Please provide a clear, helpful response.`;
                     // Update Claude CLI status indicator
                     this.updateClaudeCLIStatus('connecting');
                     
-                    // Try multiple methods to interact with Termux
+                    // Method 1: Claude CLI Bridge Service (Primary method)
+                    // Try to connect to the local Claude CLI bridge service first
+                    if (command.includes('claude')) {
+                        try {
+                            console.log('🚀 Trying Claude CLI bridge service...');
+                            const response = await fetch('http://127.0.0.1:3001/api/claude-cli', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ command, attachments })
+                            });
+                            
+                            if (response.ok) {
+                                const result = await response.text();
+                                this.updateClaudeCLIStatus('connected');
+                                console.log('✅ Claude CLI bridge service responded successfully');
+                                
+                                // Try to parse as JSON to check for artifacts
+                                try {
+                                    const parsedResult = JSON.parse(result);
+                                    if (parsedResult.artifacts && parsedResult.artifacts.length > 0) {
+                                        console.log(`📁 Received ${parsedResult.artifacts.length} artifacts from Claude CLI`);
+                                        this.handleClaudeArtifacts(parsedResult.artifacts);
+                                        return parsedResult.output;
+                                    } else if (parsedResult.output) {
+                                        return parsedResult.output;
+                                    }
+                                } catch (e) {
+                                    // Not JSON, return as text
+                                }
+                                
+                                return result;
+                            } else {
+                                console.warn(`Bridge service returned ${response.status}: ${response.statusText}`);
+                            }
+                        } catch (fetchError) {
+                            console.warn('Claude CLI bridge service not available:', fetchError.message);
+                        }
+                    }
                     
-                    // Method 1: Direct Termux API (if available)
+                    // Method 2: Direct Termux API (if available)
                     if (window.TermuxAPI) {
                         const result = await window.TermuxAPI.runCommand(command);
                         this.updateClaudeCLIStatus('connected');
                         return result.output || result.stdout || result;
                     }
                     
-                    // Method 2: Android Intent System
+                    // Method 3: Android Intent System
                     if (typeof Android !== 'undefined' && Android.executeCommand) {
                         const result = await Android.executeCommand(command);
                         this.updateClaudeCLIStatus('connected');
                         return result;
                     }
                     
-                    // Method 3: Capacitor Plugin
+                    // Method 4: Capacitor Plugin
                     if (window.TermuxPlugin) {
                         const result = await window.TermuxPlugin.execute({ command });
                         this.updateClaudeCLIStatus('connected');
                         return result.output;
                     }
                     
-                    // Method 4: WebView JavaScript Bridge
+                    // Method 5: WebView JavaScript Bridge
                     if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.termux) {
                         return new Promise((resolve, reject) => {
                             const messageId = Date.now().toString();
@@ -3896,7 +3885,7 @@ Please provide a clear, helpful response.`;
                         });
                     }
                     
-                    // Method 5: Direct Termux execution (check if we can run commands directly)
+                    // Method 6: Direct Termux execution (check if we can run commands directly)
                     if (typeof process !== 'undefined' && process.env && process.env.TERMUX_VERSION) {
                         // We're actually in Termux Node.js environment
                         const { exec } = require('child_process');
@@ -3913,53 +3902,20 @@ Please provide a clear, helpful response.`;
                         });
                     }
                     
-                    // Method 6: Browser simulation mode (for testing and development)
-                    if (window.location.href.includes('localhost') || navigator.userAgent.includes('Termux')) {
-                        // Show we're using simulation
+                    // Method 7: Simulation mode (last resort)
+                    if (command.includes('claude')) {
+                        console.log('⚠️ All Claude CLI methods failed, using simulation mode');
                         this.updateClaudeCLIStatus('simulation');
-                        console.log('🔧 Termux command (simulated):', command);
-                        
-                        // Check if we should try to use real Claude CLI via fetch to local endpoint
-                        if (command.includes('claude') && window.location.href.includes('localhost')) {
-                            try {
-                                // Try to make a request to a local Claude CLI service
-                                const response = await fetch('http://127.0.0.1:3001/api/claude-cli', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ command, attachments })
-                                });
-                                if (response.ok) {
-                                    const result = await response.text();
-                                    this.updateClaudeCLIStatus('connected');
-                                    this.showNotification('Connected to local Claude CLI service', 'success');
-                                    
-                                    // Try to parse as JSON to check for artifacts
-                                    try {
-                                        const parsedResult = JSON.parse(result);
-                                        if (parsedResult.artifacts && parsedResult.artifacts.length > 0) {
-                                            console.log(`📁 Received ${parsedResult.artifacts.length} artifacts from Claude CLI`);
-                                            this.handleClaudeArtifacts(parsedResult.artifacts);
-                                            return parsedResult.output;
-                                        }
-                                    } catch (e) {
-                                        // Not JSON, return as text
-                                    }
-                                    
-                                    return result;
-                                }
-                            } catch (fetchError) {
-                                console.log('Local Claude CLI service not available, using simulation');
-                            }
-                        }
-                        
-                        // Provide realistic simulation for Claude CLI commands
-                        if (command.includes('claude')) {
-                            await this.delay(800 + Math.random() * 1200);
-                            const response = this.simulateClaudeResponse(command);
-                            this.showNotification('Using Claude CLI simulation - for real integration, run in Termux with Claude CLI installed', 'info');
-                            return response;
-                        }
-                        
+                        await this.delay(800 + Math.random() * 1200);
+                        const response = this.simulateClaudeResponse(command);
+                        this.showNotification('Using Claude CLI simulation - for real integration, run bridge service', 'warning');
+                        return response;
+                    }
+                    
+                    // For non-Claude commands
+                    if (window.location.href.includes('localhost') || navigator.userAgent.includes('Termux')) {
+                        this.updateClaudeCLIStatus('simulation');
+                        console.log('🔧 Non-Claude command (simulated):', command);
                         return 'Command executed in browser simulation mode';
                     }
                     
