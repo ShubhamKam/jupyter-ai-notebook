@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Studio - The Ultimate Code Generation Platform</title>
+    <link rel="icon" type="image/png" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzFGQjhDRCIvPjwvc3ZnPg==">
+    <meta name="theme-color" content="#1FB8CD">
+    <meta name="description" content="AI-powered code generation platform with multi-language support, real-time execution, and beautiful UI">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://unpkg.com/lucide@latest/dist/umd/lucide.js" rel="stylesheet">
+    
+    <!-- Artifact Styles -->
+    <link rel="stylesheet" href="src/styles/fixed-artifacts.css">
+    
+    <style>
+        /* Modern CSS Reset */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            line-height: 1.15;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #1a202c;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        /* CSS Variables */
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #4299e1;
+            --success: #38a169;
+            --warning: #ed8936;
+            --error: #e53e3e;
+            --gray-50: #f7fafc;
+            --gray-100: #edf2f7;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e0;
+            --gray-400: #a0aec0;
+            --gray-500: #718096;
+            --gray-600: #4a5568;
+            --gray-700: #2d3748;
+            --gray-800: #1a202c;
+            --gray-900: #171923;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --border-radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Glass morphism utility */
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid var(--white);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 24px;
+        }
+
+        .loading-text {
+            color: var(--white);
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .loading-subtext {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* App Container */
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--gray-50);
+        }
+
+        /* Header */
+        .app-header {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            box-shadow: var(--shadow-sm);
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex: 1;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--primary);
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        .notebook-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--gray-700);
+            border: none;
+            background: transparent;
+            outline: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: var(--transition);
+            min-width: 200px;
+        }
+
+        .notebook-title:hover,
+        .notebook-title:focus {
+            background: var(--gray-100);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--gray-600);
+            border: 1px solid transparent;
+        }
+
+        .btn-ghost:hover:not(:disabled) {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Main Content */
+        .app-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: var(--white);
+            border-right: 1px solid var(--gray-200);
+            overflow-y: auto;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .sidebar-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .sidebar-section:last-child {
+            border-bottom: none;
+        }
+
+        .sidebar-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+
+        /* AI Models */
+        .ai-models-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .ai-model-card {
+            padding: 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--white);
+        }
+
+        .ai-model-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .ai-model-card.active {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .model-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .model-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .model-icon.gpt { background: linear-gradient(135deg, #10a37f 0%, #1a7f64 100%); }
+        .model-icon.claude { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%); }
+        .model-icon.gemini { background: linear-gradient(135deg, #4285f4 0%, #34a853 100%); }
+
+        .model-info {
+            flex: 1;
+        }
+
+        .model-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--gray-800);
+        }
+
+        .model-status {
+            font-size: 12px;
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connecting {
+            background: var(--warning);
+        }
+
+        .status-dot.error {
+            background: var(--error);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Chat Container */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--gray-50);
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            text-align: center;
+            padding: 48px 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-subtitle {
+            font-size: 18px;
+            color: var(--gray-600);
+            margin-bottom: 32px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .feature-card {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid var(--gray-200);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--gray-800);
+            margin-bottom: 8px;
+        }
+
+        .feature-description {
+            font-size: 12px;
+            color: var(--gray-600);
+        }
+
+        /* Chat Input */
+        .chat-input-container {
+            padding: 24px;
+            background: var(--white);
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .chat-input-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .chat-input {
+            width: 100%;
+            min-height: 80px;
+            max-height: 200px;
+            padding: 16px 20px;
+            border: 2px solid var(--gray-200);
+            border-radius: 16px;
+            font-size: 16px;
+            font-family: inherit;
+            background: var(--white);
+            resize: none;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .chat-input::placeholder {
+            color: var(--gray-500);
+        }
+
+        .input-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 16px;
+            gap: 16px;
+        }
+
+        .input-options {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .option-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .option-toggle:hover {
+            color: var(--primary);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            background: var(--gray-300);
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+
+        .toggle-switch.active {
+            background: var(--primary);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: var(--white);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(16px);
+        }
+
+        /* Message Styles */
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+        }
+
+        .message.assistant .message-avatar {
+            background: var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        .message-content {
+            max-width: 70%;
+            background: var(--white);
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            border: none;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-top: 8px;
+        }
+
+        .message.user .message-time {
+            color: rgba(255, 255, 255, 0.8);
+            text-align: right;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .typing-content {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--gray-400);
+            animation: typingDot 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        .typing-dot:nth-child(3) { animation-delay: 0; }
+
+        @keyframes typingDot {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Artifacts Panel */
+        .artifacts-panel {
+            width: 400px;
+            background: var(--white);
+            border-left: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .artifacts-panel.hidden {
+            width: 0;
+            border-left: none;
+            overflow: hidden;
+        }
+
+        .artifacts-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--gray-50);
+        }
+
+        .artifacts-title {
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .artifacts-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .artifacts-empty {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--gray-500);
+        }
+
+        .artifacts-empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 280px;
+            }
+            .artifacts-panel {
+                width: 350px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-main {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: 200px;
+                border-right: none;
+                border-bottom: 1px solid var(--gray-200);
+            }
+            
+            .artifacts-panel {
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                max-width: 400px;
+                z-index: 200;
+                transform: translateX(100%);
+            }
+            
+            .artifacts-panel.visible {
+                transform: translateX(0);
+            }
+            
+            .header-actions {
+                gap: 8px;
+            }
+            
+            .btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Code highlighting */
+        .highlight {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+        }
+
+        /* Notification System */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 16px 20px;
+            box-shadow: var(--shadow-lg);
+            border-left: 4px solid var(--success);
+            z-index: 1000;
+            animation: slideInRight 0.3s ease;
+            max-width: 400px;
+        }
+
+        .notification.error {
+            border-left-color: var(--error);
+        }
+
+        .notification.warning {
+            border-left-color: var(--warning);
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Initializing AI Code Studio</div>
+        <div class="loading-subtext">Setting up your development environment...</div>
+    </div>
+
+    <!-- Main Application -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="logo">
+                    <div class="logo-icon">AI</div>
+                    <span>Code Studio</span>
+                </div>
+                <input 
+                    type="text" 
+                    class="notebook-title" 
+                    value="My AI Notebook"
+                    placeholder="Enter notebook name..."
+                    id="notebook-title"
+                >
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-ghost btn-sm" id="new-chat-btn" title="New Chat">
+                    <i data-lucide="plus"></i>
+                    New
+                </button>
+                <button class="btn btn-ghost btn-sm" id="save-btn" title="Save">
+                    <i data-lucide="save"></i>
+                    Save
+                </button>
+                <button class="btn btn-ghost btn-sm" id="export-btn" title="Export">
+                    <i data-lucide="download"></i>
+                    Export
+                </button>
+                <button class="btn btn-primary btn-sm" id="settings-btn" title="Settings">
+                    <i data-lucide="settings"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="app-main">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <!-- AI Models Section -->
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">AI Models</h3>
+                    <div class="ai-models-grid">
+                        <div class="ai-model-card active" data-model="gpt-4">
+                            <div class="model-header">
+                                <div class="model-icon gpt">🤖</div>
+                                <div class="model-info">
+                                    <div class="model-name">GPT-4</div>
+                                    <div class="model-status">
+                                        <div class="status-dot"></div>
+                                        Ready
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="ai-model-card" data-model="claude-3">
+                            <div class="model-header">
+                                <div class="model-icon claude">🧠</div>
+                                <div class="model-info">
+                                    <div class="model-name">Claude 3</div>
+                                    <div class="model-status">
+                                        <div class="status-dot"></div>
+                                        Ready
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="ai-model-card" data-model="gemini-pro">
+                            <div class="model-header">
+                                <div class="model-icon gemini">✨</div>
+                                <div class="model-info">
+                                    <div class="model-name">Gemini Pro</div>
+                                    <div class="model-status">
+                                        <div class="status-dot"></div>
+                                        Ready
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Section -->
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Quick Actions</h3>
+                    <div class="ai-models-grid">
+                        <div class="ai-model-card" data-action="generate-code">
+                            <div class="model-header">
+                                <div class="model-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">💻</div>
+                                <div class="model-info">
+                                    <div class="model-name">Generate Code</div>
+                                    <div class="model-status">Python, JS, SQL, HTML</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="ai-model-card" data-action="create-ui">
+                            <div class="model-header">
+                                <div class="model-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">🎨</div>
+                                <div class="model-info">
+                                    <div class="model-name">Create UI</div>
+                                    <div class="model-status">Forms, Dashboards, Charts</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="ai-model-card" data-action="analyze-data">
+                            <div class="model-header">
+                                <div class="model-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">📊</div>
+                                <div class="model-info">
+                                    <div class="model-name">Analyze Data</div>
+                                    <div class="model-status">Statistics, Visualization</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chat Interface -->
+            <main class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Welcome Message -->
+                    <div class="welcome-message">
+                        <h1 class="welcome-title">🚀 Welcome to AI Code Studio</h1>
+                        <p class="welcome-subtitle">
+                            Your intelligent coding companion. Generate code, create UIs, analyze data, and build amazing applications with the power of AI.
+                        </p>
+                        
+                        <div class="features-grid">
+                            <div class="feature-card">
+                                <div class="feature-icon">🤖</div>
+                                <div class="feature-title">Multi-AI Models</div>
+                                <div class="feature-description">Access GPT-4, Claude 3, and Gemini Pro</div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon">💻</div>
+                                <div class="feature-title">Code Generation</div>
+                                <div class="feature-description">Python, JavaScript, HTML, CSS, SQL</div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon">🎨</div>
+                                <div class="feature-title">UI Components</div>
+                                <div class="feature-description">Interactive forms, dashboards, charts</div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon">📊</div>
+                                <div class="feature-title">Data Analysis</div>
+                                <div class="feature-description">Statistics, visualization, insights</div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon">⚡</div>
+                                <div class="feature-title">Live Execution</div>
+                                <div class="feature-description">Run code instantly in the browser</div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon">📱</div>
+                                <div class="feature-title">Mobile Ready</div>
+                                <div class="feature-description">Works perfectly on all devices</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                        <textarea 
+                            class="chat-input" 
+                            id="chat-input"
+                            placeholder="Describe what you want to create... Try: 'Create a Python function to analyze CSV data' or 'Build a login form with validation'"
+                            rows="3"
+                        ></textarea>
+                        
+                        <div class="input-controls">
+                            <div class="input-options">
+                                <label class="option-toggle">
+                                    <span>Generate Code</span>
+                                    <div class="toggle-switch active" data-option="generate-code">
+                                        <input type="checkbox" class="sr-only" checked>
+                                    </div>
+                                </label>
+                                
+                                <label class="option-toggle">
+                                    <span>Create UI</span>
+                                    <div class="toggle-switch" data-option="create-ui">
+                                        <input type="checkbox" class="sr-only">
+                                    </div>
+                                </label>
+                                
+                                <label class="option-toggle">
+                                    <span>Analyze Data</span>
+                                    <div class="toggle-switch" data-option="analyze-data">
+                                        <input type="checkbox" class="sr-only">
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <button class="btn btn-primary" id="send-btn">
+                                <i data-lucide="send"></i>
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Artifacts Panel -->
+            <aside class="artifacts-panel hidden" id="artifacts-panel">
+                <div class="artifacts-header">
+                    <h3 class="artifacts-title">Generated Artifacts</h3>
+                    <button class="btn btn-ghost btn-sm" id="close-artifacts-btn">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="artifacts-content" id="artifacts-content">
+                    <div class="artifacts-empty">
+                        <div class="artifacts-empty-icon">📝</div>
+                        <p>No artifacts yet. Start by sending a message to generate code, UIs, or data analysis!</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Initialize the app after DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeAICodeStudio();
+        });
+    </script>
+    <script src="src/js/fixed-app.js"></script>
+</body>
+</html>
