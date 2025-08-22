@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Termux API Integration</title>
+    <style>
+        body { 
+            font-family: system-ui; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: white;
+        }
+        button { 
+            padding: 12px 20px; 
+            margin: 10px; 
+            border: none; 
+            background: #6750A4; 
+            color: white; 
+            border-radius: 8px; 
+            cursor: pointer;
+        }
+        button:hover { background: #553098; }
+        #results { 
+            background: #2a2a2a; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-top: 20px; 
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        .info { color: #60a5fa; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Termux API Integration Test</h1>
+    <p>Testing all methods for starting Claude CLI bridge service</p>
+    
+    <div>
+        <button onclick="testTermuxAPI()">Test Termux API</button>
+        <button onclick="testAndroidInterface()">Test Android Interface</button>
+        <button onclick="testCapacitorPlugin()">Test Capacitor Plugin</button>
+        <button onclick="testBridgeHealth()">Test Bridge Health</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const time = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            results.innerHTML += `<div class="${className}">[${time}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+            console.log(message);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function testTermuxAPI() {
+            log('🚀 Testing Termux API...', 'info');
+            
+            if (window.TermuxAPI) {
+                log('✅ TermuxAPI object found!', 'success');
+                try {
+                    log('🔧 Attempting to start bridge service via Termux API...', 'info');
+                    const startCommand = 'cd /data/data/com.termux/files/home/jupyter-ai/jupyter-ai/dist && node claude-cli-bridge.js &';
+                    const result = await window.TermuxAPI.runCommand(startCommand);
+                    log(`✅ Termux API command executed: ${JSON.stringify(result)}`, 'success');
+                    
+                    // Test if service started
+                    setTimeout(async () => {
+                        try {
+                            const response = await fetch('http://127.0.0.1:3001/api/health');
+                            if (response.ok) {
+                                const health = await response.json();
+                                log(`🎉 Bridge service is running! Status: ${health.status}`, 'success');
+                            } else {
+                                log(`⚠️ Bridge service responded with status: ${response.status}`, 'error');
+                            }
+                        } catch (testError) {
+                            log(`❌ Bridge service not responding: ${testError.message}`, 'error');
+                        }
+                    }, 3000);
+                    
+                } catch (error) {
+                    log(`❌ Termux API error: ${error.message}`, 'error');
+                }
+            } else {
+                log('❌ TermuxAPI not available', 'error');
+            }
+        }
+
+        async function testAndroidInterface() {
+            log('🤖 Testing Android Interface...', 'info');
+            
+            if (typeof Android !== 'undefined' && Android.executeCommand) {
+                log('✅ Android interface found!', 'success');
+                try {
+                    log('🔧 Attempting to start bridge service via Android interface...', 'info');
+                    const result = Android.executeCommand('cd /data/data/com.termux/files/home/jupyter-ai/jupyter-ai/dist && node claude-cli-bridge.js &');
+                    log(`✅ Android command executed: ${result}`, 'success');
+                } catch (error) {
+                    log(`❌ Android interface error: ${error.message}`, 'error');
+                }
+            } else {
+                log('❌ Android interface not available', 'error');
+            }
+        }
+
+        async function testCapacitorPlugin() {
+            log('⚡ Testing Capacitor Plugin...', 'info');
+            
+            if (window.TermuxPlugin) {
+                log('✅ TermuxPlugin found!', 'success');
+                try {
+                    log('🔧 Attempting to start bridge service via Capacitor...', 'info');
+                    const result = await window.TermuxPlugin.execute({ 
+                        command: 'cd /data/data/com.termux/files/home/jupyter-ai/jupyter-ai/dist && node claude-cli-bridge.js &' 
+                    });
+                    log(`✅ Capacitor command executed: ${JSON.stringify(result)}`, 'success');
+                } catch (error) {
+                    log(`❌ Capacitor plugin error: ${error.message}`, 'error');
+                }
+            } else {
+                log('❌ TermuxPlugin not available', 'error');
+            }
+        }
+
+        async function testBridgeHealth() {
+            log('🏥 Testing Bridge Service Health...', 'info');
+            
+            try {
+                const response = await fetch('http://127.0.0.1:3001/api/health');
+                if (response.ok) {
+                    const health = await response.json();
+                    log(`✅ Bridge service health: ${JSON.stringify(health)}`, 'success');
+                    
+                    // Test actual Claude CLI command
+                    const testResponse = await fetch('http://127.0.0.1:3001/api/claude-cli', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ command: 'echo "test" | claude -p' })
+                    });
+                    
+                    if (testResponse.ok) {
+                        const result = await testResponse.text();
+                        log(`✅ Claude CLI test response: ${result.substring(0, 100)}...`, 'success');
+                    } else {
+                        log(`❌ Claude CLI test failed: ${testResponse.status}`, 'error');
+                    }
+                } else {
+                    log(`❌ Bridge service health check failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Bridge service not reachable: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-test on load
+        window.onload = function() {
+            log('🧪 Termux API Integration Test Started', 'info');
+            log('📱 Available interfaces:', 'info');
+            log(`  - TermuxAPI: ${window.TermuxAPI ? 'Available' : 'Not Available'}`, 'info');
+            log(`  - Android: ${(typeof Android !== 'undefined') ? 'Available' : 'Not Available'}`, 'info');
+            log(`  - TermuxPlugin: ${window.TermuxPlugin ? 'Available' : 'Not Available'}`, 'info');
+        };
+    </script>
+</body>
+</html>
