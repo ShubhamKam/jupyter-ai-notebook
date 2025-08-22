@@ -1497,9 +1497,10 @@
                 <div class="form-group">
                     <label for="ai-model-select">Default AI Model:</label>
                     <select id="ai-model-select" class="form-control">
+                        <option value="claude-cli">Claude CLI (Recommended)</option>
+                        <option value="claude-3-sonnet">Claude API</option>
                         <option value="gpt-4">GPT-4</option>
                         <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                        <option value="claude-3-sonnet">Claude 3 Sonnet</option>
                         <option value="gemini-pro">Gemini Pro</option>
                     </select>
                 </div>
@@ -1550,7 +1551,7 @@
                 this.currentNotebook = 'default';
                 this.dataStore = new Map(); // Store data between blocks
                 this.settings = {
-                    aiModel: 'gpt-4',
+                    aiModel: 'claude-cli',  // Default to Claude CLI
                     apiKeys: {
                         openai: '',
                         anthropic: '',
@@ -2023,9 +2024,10 @@
                         <div class="context-info">📊 Context: ${contextInfo} ${attachments.length > 0 ? `• 📎 ${attachments.length} attachment${attachments.length > 1 ? 's' : ''}` : ''}</div>
                         <div class="controls-row">
                             <select class="language-select" data-block-id="${block.id}">
+                                <option value="claude-cli" ${(!block.content.model || block.content.model === 'claude-cli') ? 'selected' : ''}>Claude CLI (Default)</option>
+                                <option value="claude-3-sonnet" ${block.content.model === 'claude-3-sonnet' ? 'selected' : ''}>Claude API</option>
                                 <option value="gpt-4" ${block.content.model === 'gpt-4' ? 'selected' : ''}>GPT-4</option>
                                 <option value="gpt-3.5-turbo" ${block.content.model === 'gpt-3.5-turbo' ? 'selected' : ''}>GPT-3.5</option>
-                                <option value="claude-3-sonnet" ${block.content.model === 'claude-3-sonnet' ? 'selected' : ''}>Claude</option>
                                 <option value="gemini-pro" ${block.content.model === 'gemini-pro' ? 'selected' : ''}>Gemini</option>
                             </select>
                             <button class="btn btn--primary btn--sm" onclick="aiNotebook.executeBlock('${block.id}')">
@@ -2864,6 +2866,26 @@ Return a JSON configuration object that will work well with this data.`;
                     throw new Error('Please enter a prompt before executing');
                 }
 
+                // If Claude CLI is selected, always try to use it first
+                if (model === 'claude-cli' || !model || model === 'claude-3-sonnet') {
+                    try {
+                        const response = await this.callAIAPI(model, prompt, this.getContext(block), attachments);
+                        
+                        return [{
+                            type: 'text',
+                            title: 'Claude CLI Response',
+                            content: response
+                        }];
+                    } catch (error) {
+                        // If Claude CLI fails, show error message
+                        return [{
+                            type: 'error',
+                            title: 'Claude CLI Error',
+                            content: `Failed to connect to Claude CLI: ${error.message}\n\n💡 Make sure:\n1. Claude CLI is installed in Termux\n2. The bridge service is running\n3. Or add API keys in Settings for fallback`
+                        }];
+                    }
+                }
+
                 const apiKey = this.getApiKeyForModel(model);
                 if (!apiKey) {
                     // Provide helpful demo response if no API key
@@ -3278,15 +3300,25 @@ Format the response clearly showing the execution result.`;
             }
 
             getContext(currentBlock) {
+                if (!currentBlock || !currentBlock.id) {
+                    console.warn('getContext called with invalid block:', currentBlock);
+                    return '';
+                }
+                
                 const currentIndex = this.blocks.findIndex(b => b.id === currentBlock.id);
+                if (currentIndex === -1) {
+                    console.warn('Block not found in blocks array:', currentBlock.id);
+                    return '';
+                }
+                
                 const previousBlocks = this.blocks.slice(0, currentIndex);
                 
                 let context = '';
                 previousBlocks.forEach((block, index) => {
-                    if (block.type === 'code' && block.content.code) {
-                        context += `Block ${index + 1} (${block.content.language}):\n${block.content.code.substring(0, 200)}\n\n`;
+                    if (block && block.type === 'code' && block.content && block.content.code) {
+                        context += `Block ${index + 1} (${block.content.language || 'unknown'}):\n${block.content.code.substring(0, 200)}\n\n`;
                     }
-                    if (block.outputs && block.outputs.length > 0) {
+                    if (block && block.outputs && block.outputs.length > 0 && block.outputs[0].content) {
                         context += `Output: ${block.outputs[0].content.substring(0, 100)}...\n\n`;
                     }
                 });
