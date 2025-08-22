@@ -85,7 +85,7 @@
             padding: 16px 20px;
             position: sticky;
             top: 0;
-            z-index: 1100;
+            z-index: 100;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -267,7 +267,7 @@
             background-color: var(--md-sys-color-surface-container);
             border-top: 1px solid var(--md-sys-color-outline-variant);
             padding: 8px 0;
-            z-index: 100;
+            z-index: 1060;
         }
 
         .nav-container {
@@ -392,7 +392,7 @@
             background: white;
             transform: translateX(-100%);
             transition: transform 0.3s ease;
-            z-index: 1050;
+            z-index: 99;
             overflow-y: auto;
         }
 
@@ -986,6 +986,7 @@
             left: 0;
             right: 0;
             bottom: 0;
+            z-index: 1200;
             background: rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: flex-end;
@@ -1052,6 +1053,24 @@
 
         .modal-body {
             padding: 20px;
+        }
+        .insight-card {
+            background: var(--md-sys-color-surface-container);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .insight-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            color: var(--md-sys-color-on-surface);
+        }
+        .insight-card div {
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         .modal-footer {
@@ -1643,18 +1662,18 @@
     <!-- Material 3 Bottom Navigation -->
     <nav class="bottom-nav">
         <div class="nav-container">
-            <a href="#" class="nav-item active" onclick="aiNotebook.showView('home')">
+            <a href="#" class="nav-item active" onclick="aiNotebook.showView('home', event)">
                 <span class="material-symbols-rounded">home</span>
                 <span>Home</span>
             </a>
-            <a href="#" class="nav-item" onclick="aiNotebook.showView('notebooks')">
+            <a href="#" class="nav-item" onclick="aiNotebook.showView('notebooks', event)">
                 <span class="material-symbols-rounded">folder_open</span>
                 <span>Notebooks</span>
             </a>
             <button class="fab" id="fab-add-block" title="Add Block">
                 <span class="material-symbols-rounded">add</span>
             </button>
-            <a href="#" class="nav-item" onclick="aiNotebook.showView('insights')">
+            <a href="#" class="nav-item" onclick="aiNotebook.showView('insights', event)">
                 <span class="material-symbols-rounded">insights</span>
                 <span>Insights</span>
             </a>
@@ -3850,7 +3869,7 @@ Please provide a clear, helpful response.`;
                                 // Method 1: Termux API (preferred)
                                 if (window.TermuxAPI) {
                                     console.log('🚀 Using Termux API to start bridge service...');
-                                    const startCommand = 'cd /data/data/com.termux/files/home && node claude-cli-bridge.js &';
+                                    const startCommand = `cd "${this.getAppDataPath()}/dist" && node claude-cli-bridge.js &`;
                                     await window.TermuxAPI.runCommand(startCommand);
                                     this.showNotification('⚡ Starting Claude CLI bridge service via Termux API...', 'info');
                                     await this.delay(4000);
@@ -3860,7 +3879,7 @@ Please provide a clear, helpful response.`;
                                 // Method 2: Android Interface
                                 if (typeof Android !== 'undefined' && Android.executeCommand) {
                                     console.log('🚀 Using Android interface to start bridge service...');
-                                    Android.executeCommand('cd /data/data/com.termux/files/home/jupyter-ai/jupyter-ai/dist && node claude-cli-bridge.js &');
+                                    Android.executeCommand(`cd "${this.getAppDataPath()}/dist" && node claude-cli-bridge.js &`);
                                     this.showNotification('⚡ Starting Claude CLI bridge service...', 'info');
                                     await this.delay(4000);
                                     return this.executeTermuxCommand(command, attachments);
@@ -3870,7 +3889,7 @@ Please provide a clear, helpful response.`;
                                 if (window.TermuxPlugin) {
                                     console.log('🚀 Using Capacitor plugin to start bridge service...');
                                     await window.TermuxPlugin.execute({ 
-                                        command: 'cd /data/data/com.termux/files/home/jupyter-ai/jupyter-ai/dist && node claude-cli-bridge.js &' 
+                                        command: `cd "${this.getAppDataPath()}/dist" && node claude-cli-bridge.js &` 
                                     });
                                     this.showNotification('⚡ Starting Claude CLI bridge service...', 'info');
                                     await this.delay(4000);
@@ -5278,7 +5297,7 @@ console.log(analyzeData(result));`;
                     color: white;
                     border-radius: 8px;
                     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                    z-index: 900;
+                    z-index: 1000;
                     font-weight: 500;
                     font-size: 14px;
                     max-width: 90vw;
@@ -5326,6 +5345,151 @@ console.log(analyzeData(result));`;
 
             delay(ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            
+            getAppDataPath() {
+                // Return the proper application data path for various environments
+                if (typeof Android !== 'undefined' && Android.getDataPath) {
+                    return Android.getDataPath();
+                }
+                if (window.TermuxAPI && window.TermuxAPI.getAppDataPath) {
+                    return window.TermuxAPI.getAppDataPath();
+                }
+                // Default Termux path
+                return '/data/data/com.termux/files/home/jupyter-ai/jupyter-ai';
+            }
+            
+            showView(viewName, event) {
+                console.log(`📱 Switching to ${viewName} view`);
+                
+                // Update active nav item
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                if (event) {
+                    event.target.closest('.nav-item').classList.add('active');
+                }
+                
+                // Handle different views
+                switch(viewName) {
+                    case 'home':
+                        // Show main notebook view
+                        document.querySelector('.main-content').style.display = 'block';
+                        this.showNotification('🏠 Home View', 'info');
+                        break;
+                        
+                    case 'notebooks':
+                        // Show saved notebooks
+                        this.showModal('notebook-modal');
+                        this.loadNotebookList();
+                        break;
+                        
+                    case 'insights':
+                        // Show insights/analytics
+                        this.showInsightsView();
+                        break;
+                        
+                    case 'settings':
+                        // Show settings
+                        this.showSettings();
+                        break;
+                        
+                    default:
+                        console.warn(`Unknown view: ${viewName}`);
+                }
+            }
+            
+            showInsightsView() {
+                // Create or show insights modal
+                let insightsModal = document.getElementById('insights-modal');
+                if (!insightsModal) {
+                    insightsModal = this.createInsightsModal();
+                }
+                this.showModal('insights-modal');
+                this.updateInsights();
+            }
+            
+            createInsightsModal() {
+                const modal = document.createElement('div');
+                modal.id = 'insights-modal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>📊 Notebook Insights</h2>
+                            <button class="close-modal" onclick="aiNotebook.hideModal('insights-modal')">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="insights-content">
+                                <div class="insight-card">
+                                    <h3>📝 Blocks Summary</h3>
+                                    <div id="blocks-summary"></div>
+                                </div>
+                                <div class="insight-card">
+                                    <h3>🤖 AI Usage</h3>
+                                    <div id="ai-usage"></div>
+                                </div>
+                                <div class="insight-card">
+                                    <h3>⚡ Performance</h3>
+                                    <div id="performance-stats"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                return modal;
+            }
+            
+            loadNotebookList() {
+                // Load and display saved notebooks
+                const notebooks = this.getSavedNotebooks();
+                const listContainer = document.querySelector('#notebook-list');
+                
+                if (listContainer) {
+                    listContainer.innerHTML = notebooks.map(notebook => `
+                        <div class="notebook-item" onclick="aiNotebook.loadNotebook('${notebook.id}')">
+                            <h4>${notebook.name}</h4>
+                            <p>${notebook.description || 'No description'}</p>
+                            <div class="notebook-meta">
+                                <span>${notebook.blockCount} blocks</span>
+                                <span>${this.formatRelativeTime(notebook.lastModified)}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+            
+            getSavedNotebooks() {
+                // Get saved notebooks from localStorage
+                try {
+                    const saved = localStorage.getItem('saved_notebooks');
+                    return saved ? JSON.parse(saved) : [
+                        {
+                            id: 'default',
+                            name: 'Data Analysis Starter',
+                            description: 'Basic data analysis template',
+                            blockCount: this.blocks.length,
+                            lastModified: new Date().toISOString()
+                        }
+                    ];
+                } catch (error) {
+                    console.warn('Could not load saved notebooks:', error);
+                    return [];
+                }
+            }
+            
+            formatRelativeTime(dateString) {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMins / 60);
+                const diffDays = Math.floor(diffHours / 24);
+                
+                if (diffMins < 60) return `${diffMins}m ago`;
+                if (diffHours < 24) return `${diffHours}h ago`;
+                return `${diffDays}d ago`;
             }
         }
 
