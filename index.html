@@ -1544,6 +1544,9 @@
                 <button class="icon-button" id="quick-claude-test" title="Quick Claude Test">
                     <span class="material-symbols-rounded">flash_on</span>
                 </button>
+                <button class="icon-button" id="test-middleware" title="Test Middleware">
+                    <span class="material-symbols-rounded">router</span>
+                </button>
                 <button class="icon-button" id="save-btn" title="Save Notebook">
                     <span class="material-symbols-rounded">save</span>
                 </button>
@@ -1875,6 +1878,7 @@
                 this.bindEvent('start-bridge-service', 'click', () => this.startBridgeService());
                 this.bindEvent('test-claude-cli', 'click', () => this.testClaudeCLI());
                 this.bindEvent('quick-claude-test', 'click', () => this.quickClaudeTest());
+                this.bindEvent('test-middleware', 'click', () => this.testMiddleware());
                 this.bindEvent('settings-btn', 'click', () => this.showModal('settings-modal'));
                 this.bindEvent('upload-btn', 'click', () => {
                     const fileInput = document.getElementById('file-upload');
@@ -3829,7 +3833,32 @@ Please provide a clear, helpful response.`;
                     // Update Claude CLI status indicator
                     this.updateClaudeCLIStatus('connecting');
                     
-                    // Method 1: Direct Termux API (Simplest approach)
+                    // Method 1: Termux Middleware (Easiest setup!)
+                    if (command.includes('claude')) {
+                        try {
+                            console.log('🔗 Trying Termux middleware...');
+                            const middlewareResponse = await fetch('http://127.0.0.1:8888/claude', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ command, attachments })
+                            });
+                            
+                            if (middlewareResponse.ok) {
+                                const result = await middlewareResponse.json();
+                                if (result.success) {
+                                    this.updateClaudeCLIStatus('connected');
+                                    console.log('✅ Termux middleware successful');
+                                    return result.output || 'Command executed successfully';
+                                } else {
+                                    console.log('⚠️ Middleware returned error:', result.error);
+                                }
+                            }
+                        } catch (middlewareError) {
+                            console.log('⚠️ Termux middleware failed:', middlewareError.message);
+                        }
+                    }
+                    
+                    // Method 2: Direct Termux API (Fallback)
                     if (command.includes('claude') && window.TermuxAPI) {
                         try {
                             console.log('🚀 Using direct Termux API...');
@@ -3842,7 +3871,7 @@ Please provide a clear, helpful response.`;
                         }
                     }
                     
-                    // Method 2: Android Interface (Simple)
+                    // Method 3: Android Interface (Simple)
                     if (command.includes('claude') && typeof Android !== 'undefined' && Android.executeCommand) {
                         try {
                             console.log('🚀 Using Android interface...');
@@ -5483,6 +5512,47 @@ console.log(analyzeData(result));`;
                 this.updateClaudeCLIStatus('simulation');
                 this.showNotification('💡 Claude CLI not directly accessible. Using simulation mode.', 'info');
                 return false;
+            }
+            
+            async testMiddleware() {
+                // Test Termux middleware connection
+                this.showNotification('🔗 Testing middleware connection...', 'info');
+                
+                try {
+                    // Test health endpoint
+                    const healthResponse = await fetch('http://127.0.0.1:8888/health');
+                    
+                    if (healthResponse.ok) {
+                        const health = await healthResponse.json();
+                        this.updateClaudeCLIStatus('connected');
+                        this.showNotification(`✅ Middleware connected! Claude: ${health.claude_available ? 'Available' : 'Not Available'}`, 'success');
+                        
+                        if (health.claude_available) {
+                            // Test Claude CLI through middleware
+                            const testResponse = await fetch('http://127.0.0.1:8888/claude', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ prompt: 'Hello Claude!' })
+                            });
+                            
+                            if (testResponse.ok) {
+                                const result = await testResponse.json();
+                                if (result.success) {
+                                    this.showNotification('🎉 Middleware + Claude CLI working perfectly!', 'success');
+                                } else {
+                                    this.showNotification('⚠️ Middleware connected but Claude CLI issue', 'warning');
+                                }
+                            }
+                        }
+                        return true;
+                    } else {
+                        throw new Error(`HTTP ${healthResponse.status}`);
+                    }
+                } catch (error) {
+                    this.updateClaudeCLIStatus('error');
+                    this.showNotification('❌ Middleware not running. Run ~/start-claude-middleware in Termux', 'error');
+                    return false;
+                }
             }
             
             handleViewSwitch(viewName) {
