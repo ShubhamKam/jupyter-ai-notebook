@@ -3838,6 +3838,23 @@ Please provide a clear, helpful response.`;
                             }
                         } catch (fetchError) {
                             console.warn('Claude CLI bridge service not available:', fetchError.message);
+                            
+                            // Try to auto-start bridge service via Termux if available
+                            try {
+                                if (typeof Android !== 'undefined' && Android.executeCommand) {
+                                    console.log('🔄 Attempting to auto-start Claude CLI bridge service...');
+                                    Android.executeCommand('cd /data/data/com.termux/files/home && node claude-cli-bridge.js &');
+                                    this.showNotification('⚡ Attempting to auto-start Claude CLI bridge service...', 'info');
+                                    // Wait a moment then retry the command
+                                    await this.delay(3000);
+                                    return this.executeTermuxCommand(command, attachments);
+                                }
+                            } catch (autoStartError) {
+                                console.warn('Could not auto-start bridge service:', autoStartError.message);
+                            }
+                            
+                            // Show helpful error message
+                            this.showNotification('💡 Claude CLI bridge service not running. For real Claude CLI responses, install Termux + Claude CLI + start bridge service', 'warning');
                         }
                     }
                     
@@ -3908,7 +3925,7 @@ Please provide a clear, helpful response.`;
                         this.updateClaudeCLIStatus('simulation');
                         await this.delay(800 + Math.random() * 1200);
                         const response = this.simulateClaudeResponse(command);
-                        this.showNotification('Using Claude CLI simulation - for real integration, run bridge service', 'warning');
+                        this.showNotification('🤖 Simulation Mode Active - For Real Claude CLI: Install Termux + Claude CLI + Start Bridge Service', 'info');
                         return response;
                     }
                     
