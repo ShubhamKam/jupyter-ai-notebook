@@ -1,0 +1,13 @@
+This is a sample data file for testing Claude CLI integration with file attachments.
+
+Key Features Tested:
+1. File reading and processing
+2. Temporary file creation in bridge service
+3. Artifact capture and cleanup
+4. Response formatting with attachments
+
+Sample Data:
+- User: John Doe
+- Age: 30
+- Skills: Python, JavaScript, Data Analysis
+- Project: AI Code Studio Mobile App

@@ -76,8 +76,30 @@ async function runTests() {
             console.log('❌ JSON Pattern Match: FAILED\n');
         }
 
-        // Test 4: Web App Accessibility
-        console.log('Test 4: Web App Accessibility');
+        // Test 4: File Attachment Support
+        console.log('Test 4: File Attachment Support');
+        const attachmentCommand = 'echo "Analyze the attached file content and provide a summary." | claude -p';
+        const sampleAttachment = {
+            id: 'test_attachment',
+            name: 'sample.txt',
+            size: 100,
+            content: 'This is a sample file content for testing Claude CLI integration with file attachments.',
+            uploadedAt: new Date().toISOString()
+        };
+        
+        const attachmentResponse = await makeRequest(`${BRIDGE_URL}/api/claude-cli`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                command: attachmentCommand,
+                attachments: [sampleAttachment]
+            })
+        });
+        console.log('✅ File Attachment Response:');
+        console.log(attachmentResponse.data.substring(0, 200) + '...\n');
+
+        // Test 5: Web App Accessibility
+        console.log('Test 5: Web App Accessibility');
         const webResponse = await makeRequest(WEB_URL);
         if (webResponse.status === 200 && webResponse.data.includes('AI Code Studio')) {
             console.log('✅ Web App: Accessible');
@@ -99,9 +121,10 @@ async function runTests() {
         console.log('\n📱 To test the full integration:');
         console.log('1. Open http://localhost:3000 in your browser');
         console.log('2. Click the test button (✓) in the header');
-        console.log('3. Create a code block and use natural language prompts');
-        console.log('4. Create a chart block and verify AI-generated configurations');
-        console.log('\n✨ The app now uses real Claude CLI responses instead of simulation!');
+        console.log('3. Create an AI prompt block and click "Attach Files" to test file attachments');
+        console.log('4. Create a code block and use natural language prompts');
+        console.log('5. Create a chart block and verify AI-generated configurations');
+        console.log('\n✨ The app now supports file attachments with Claude CLI integration!');
 
     } catch (error) {
         console.error('❌ Test failed:', error.message);

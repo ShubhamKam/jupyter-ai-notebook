@@ -20,18 +20,36 @@ const CORS_HEADERS = {
     'Content-Type': 'application/json'
 };
 
-function executeCommand(command, timeout = 30000) {
+function executeCommand(command, attachments, timeout = 30000) {
     return new Promise((resolve, reject) => {
         console.log(`Executing: ${command}`);
         
         // Track working directory and files before command execution
         const workingDir = process.cwd();
         let existingFiles = [];
+        const createdAttachmentFiles = [];
         
         try {
             existingFiles = fs.readdirSync(workingDir);
         } catch (error) {
             console.warn('Could not read directory before command execution');
+        }
+        
+        // Create temporary files for attachments
+        if (attachments && attachments.length > 0) {
+            console.log(`📎 Processing ${attachments.length} attachment${attachments.length > 1 ? 's' : ''}...`);
+            
+            for (const attachment of attachments) {
+                try {
+                    const tempFileName = `temp_${Date.now()}_${attachment.name}`;
+                    const tempFilePath = path.join(workingDir, tempFileName);
+                    fs.writeFileSync(tempFilePath, attachment.content, 'utf8');
+                    createdAttachmentFiles.push(tempFileName);
+                    console.log(`📁 Created temporary file: ${tempFileName} (${attachment.size} bytes)`);
+                } catch (error) {
+                    console.error(`Failed to create temporary file for ${attachment.name}:`, error.message);
+                }
+            }
         }
         
         exec(command, { 
@@ -41,7 +59,6 @@ function executeCommand(command, timeout = 30000) {
                 PATH: '/data/data/com.termux/files/usr/bin:' + process.env.PATH,
                 TERMUX_VERSION: process.env.TERMUX_VERSION || '1'
             },
-            shell: '/data/data/com.termux/files/usr/bin/bash',
             cwd: workingDir
         }, (error, stdout, stderr) => {
             if (error) {
@@ -86,11 +103,25 @@ function executeCommand(command, timeout = 30000) {
                     console.warn('Could not check for new files:', dirError.message);
                 }
                 
+                // Cleanup temporary attachment files
+                for (const tempFile of createdAttachmentFiles) {
+                    try {
+                        const tempFilePath = path.join(workingDir, tempFile);
+                        if (fs.existsSync(tempFilePath)) {
+                            fs.unlinkSync(tempFilePath);
+                            console.log(`🧹 Cleaned up temporary file: ${tempFile}`);
+                        }
+                    } catch (cleanupError) {
+                        console.warn(`Could not cleanup temp file ${tempFile}:`, cleanupError.message);
+                    }
+                }
+                
                 resolve({
                     success: true,
                     output: result,
                     stderr: stderr || '',
-                    artifacts: artifacts
+                    artifacts: artifacts,
+                    attachmentsProcessed: createdAttachmentFiles.length
                 });
             }
         });
@@ -121,7 +152,7 @@ const server = http.createServer(async (req, res) => {
         
         req.on('end', async () => {
             try {
-                const { command } = JSON.parse(body);
+                const { command, attachments } = JSON.parse(body);
                 
                 if (!command) {
                     res.writeHead(400);
@@ -145,10 +176,10 @@ const server = http.createServer(async (req, res) => {
                     return;
                 }
 
-                // Replace 'claude' with full path for better compatibility
-                const processedCommand = command.replace(/\bclaude\b/g, '/data/data/com.termux/files/usr/bin/claude');
+                // Use claude command directly - symlink should work
+                const processedCommand = command;
 
-                const result = await executeCommand(processedCommand);
+                const result = await executeCommand(processedCommand, attachments);
                 
                 res.writeHead(200);
                 
