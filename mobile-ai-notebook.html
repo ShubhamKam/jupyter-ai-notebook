@@ -2663,6 +2663,12 @@
 
             async getDataFromSource(dataSource) {
                 try {
+                    // Add null check for dataSource parameter
+                    if (!dataSource || typeof dataSource !== 'string') {
+                        console.warn('getDataFromSource called with invalid dataSource:', dataSource);
+                        return this.generateSampleDataForChart('line');
+                    }
+
                     if (dataSource === 'auto') {
                         // AI auto-selects best available data
                         const sources = this.getAvailableDataSources();
@@ -3482,6 +3488,12 @@ Format the response clearly showing the execution result.`;
 
             // AI API Methods (simplified for mobile)
             getApiKeyForModel(model) {
+                // Add null check for model parameter
+                if (!model || typeof model !== 'string') {
+                    console.warn('getApiKeyForModel called with invalid model:', model);
+                    return null;
+                }
+                
                 if (model.startsWith('gpt-')) {
                     return this.settings.apiKeys.openai;
                 } else if (model.startsWith('claude-')) {
@@ -4219,7 +4231,7 @@ console.log(analyzeData(result));`;
                 let inCodeBlock = false;
                 
                 for (const line of lines) {
-                    if (line.startsWith('```')) {
+                    if (line && line.startsWith('```')) {
                         inCodeBlock = !inCodeBlock;
                         continue;
                     }
