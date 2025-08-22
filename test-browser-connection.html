@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Claude CLI Bridge Connection</title>
+</head>
+<body>
+    <h1>Testing Claude CLI Bridge Connection</h1>
+    <button onclick="testConnection()">Test Bridge Connection</button>
+    <button onclick="testAIPrompt()">Test AI Prompt</button>
+    <button onclick="testCodeGen()">Test Code Generation</button>
+    <div id="results"></div>
+
+    <script>
+        function log(message) {
+            document.getElementById('results').innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+
+        async function testConnection() {
+            log('🧪 Testing bridge connection...');
+            try {
+                const response = await fetch('http://127.0.0.1:3001/api/health');
+                const data = await response.json();
+                log('✅ Bridge health: ' + JSON.stringify(data));
+            } catch (error) {
+                log('❌ Bridge connection failed: ' + error.message);
+            }
+        }
+
+        async function testAIPrompt() {
+            log('🧪 Testing AI prompt...');
+            try {
+                const response = await fetch('http://127.0.0.1:3001/api/claude-cli', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        command: 'echo "What is 2+2?" | claude -p'
+                    })
+                });
+                const data = await response.text();
+                log('✅ AI Response: ' + data.substring(0, 100));
+            } catch (error) {
+                log('❌ AI prompt failed: ' + error.message);
+            }
+        }
+
+        async function testCodeGen() {
+            log('🧪 Testing code generation...');
+            try {
+                const response = await fetch('http://127.0.0.1:3001/api/claude-cli', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        command: 'echo "Write hello world in Python" | claude -p'
+                    })
+                });
+                const data = await response.text();
+                log('✅ Code Response: ' + data.substring(0, 150));
+            } catch (error) {
+                log('❌ Code generation failed: ' + error.message);
+            }
+        }
+
+        // Auto-test on load
+        window.onload = function() {
+            log('🚀 Starting browser tests...');
+            setTimeout(testConnection, 1000);
+        };
+    </script>
+</body>
+</html>

@@ -85,7 +85,7 @@
             padding: 16px 20px;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 1100;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -392,7 +392,7 @@
             background: white;
             transform: translateX(-100%);
             transition: transform 0.3s ease;
-            z-index: 99;
+            z-index: 1050;
             overflow-y: auto;
         }
 
@@ -3850,7 +3850,7 @@ Please provide a clear, helpful response.`;
                                 // Method 1: Termux API (preferred)
                                 if (window.TermuxAPI) {
                                     console.log('🚀 Using Termux API to start bridge service...');
-                                    const startCommand = 'cd /data/data/com.termux/files/home/jupyter-ai/jupyter-ai/dist && node claude-cli-bridge.js &';
+                                    const startCommand = 'cd /data/data/com.termux/files/home && node claude-cli-bridge.js &';
                                     await window.TermuxAPI.runCommand(startCommand);
                                     this.showNotification('⚡ Starting Claude CLI bridge service via Termux API...', 'info');
                                     await this.delay(4000);
@@ -5278,7 +5278,7 @@ console.log(analyzeData(result));`;
                     color: white;
                     border-radius: 8px;
                     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                    z-index: 1000;
+                    z-index: 900;
                     font-weight: 500;
                     font-size: 14px;
                     max-width: 90vw;

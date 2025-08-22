@@ -56,10 +56,13 @@ function executeCommand(command, attachments, timeout = 30000) {
             timeout,
             env: { 
                 ...process.env, 
-                PATH: '/data/data/com.termux/files/usr/bin:' + process.env.PATH,
-                TERMUX_VERSION: process.env.TERMUX_VERSION || '1'
+                PATH: '/data/data/com.termux/files/usr/bin:/data/data/com.termux/files/home/.local/bin:' + (process.env.PATH || ''),
+                TERMUX_VERSION: process.env.TERMUX_VERSION || '1',
+                HOME: '/data/data/com.termux/files/home',
+                SHELL: '/data/data/com.termux/files/usr/bin/bash'
             },
-            cwd: workingDir
+            cwd: workingDir,
+            shell: '/data/data/com.termux/files/usr/bin/bash'
         }, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Command failed: ${error.message}`);
