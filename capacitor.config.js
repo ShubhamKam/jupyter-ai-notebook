@@ -1,6 +1,6 @@
 const config = {
-  appId: 'com.jupyterai.notebook',
-  appName: 'Jupyter AI Notebook',
+  appId: 'com.aicodestudio.app',
+  appName: 'AI Code Studio',
   webDir: 'dist',
   server: {
     androidScheme: 'https'

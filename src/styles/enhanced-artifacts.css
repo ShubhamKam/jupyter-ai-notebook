@@ -1,0 +1,564 @@
+/* AI Code Studio - Artifacts Panel Styles */
+
+/* Artifacts Panel */
+.artifacts-panel {
+    width: var(--artifacts-width);
+    background-color: var(--color-white);
+    border-left: 1px solid var(--color-gray-200);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+    transition: all var(--transition-base);
+}
+
+.artifacts-panel.hidden {
+    width: 0;
+    border-left: none;
+}
+
+.artifacts-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--color-gray-200);
+    background-color: var(--color-gray-50);
+}
+
+.artifacts-header h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-gray-800);
+    margin: 0;
+}
+
+.artifacts-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-4);
+}
+
+/* Artifact Item */
+.artifact-item {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+}
+
+.artifact-item:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary);
+}
+
+.artifact-item.active {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Artifact Header */
+.artifact-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-gray-50);
+    border-bottom: 1px solid var(--color-gray-200);
+}
+
+.artifact-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 1;
+}
+
+.artifact-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-white);
+    flex-shrink: 0;
+}
+
+.artifact-icon.code {
+    background-color: var(--color-python);
+}
+
+.artifact-icon.html {
+    background-color: var(--color-html);
+}
+
+.artifact-icon.css {
+    background-color: var(--color-css);
+}
+
+.artifact-icon.javascript {
+    background-color: var(--color-javascript);
+    color: var(--color-gray-900);
+}
+
+.artifact-icon.sql {
+    background-color: var(--color-sql);
+}
+
+.artifact-icon.ui {
+    background-color: var(--color-primary);
+}
+
+.artifact-icon.data {
+    background-color: var(--color-success);
+}
+
+.artifact-icon.document {
+    background-color: var(--color-secondary);
+}
+
+.artifact-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.artifact-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-gray-800);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.artifact-subtitle {
+    font-size: var(--font-size-xs);
+    color: var(--color-gray-500);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Artifact Actions */
+.artifact-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.artifact-action-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background-color: transparent;
+    color: var(--color-gray-500);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.artifact-action-btn:hover {
+    background-color: var(--color-gray-200);
+    color: var(--color-gray-700);
+}
+
+.artifact-action-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Artifact Content */
+.artifact-content {
+    position: relative;
+}
+
+/* Code Editor */
+.artifact-editor {
+    position: relative;
+}
+
+.artifact-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--color-gray-900);
+    color: var(--color-gray-100);
+    font-size: var(--font-size-xs);
+}
+
+.artifact-editor-language {
+    font-family: var(--font-family-mono);
+    font-weight: var(--font-weight-medium);
+}
+
+.artifact-editor-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.artifact-editor-btn {
+    padding: var(--space-1) var(--space-2);
+    border: none;
+    background-color: transparent;
+    color: var(--color-gray-300);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-xs);
+    transition: all var(--transition-fast);
+}
+
+.artifact-editor-btn:hover {
+    background-color: var(--color-gray-700);
+    color: var(--color-white);
+}
+
+.artifact-code {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-relaxed);
+    background-color: var(--color-gray-900);
+    color: var(--color-gray-100);
+    padding: var(--space-4);
+    margin: 0;
+    border: none;
+    outline: none;
+    resize: vertical;
+    min-height: 200px;
+    max-height: 400px;
+    width: 100%;
+    overflow-y: auto;
+    white-space: pre;
+    overflow-wrap: break-word;
+}
+
+.artifact-code:focus {
+    background-color: var(--color-gray-800);
+}
+
+/* Preview */
+.artifact-preview {
+    border-top: 1px solid var(--color-gray-200);
+    background-color: var(--color-white);
+}
+
+.artifact-preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: between;
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--color-gray-50);
+    border-bottom: 1px solid var(--color-gray-200);
+    font-size: var(--font-size-xs);
+    color: var(--color-gray-600);
+}
+
+.artifact-preview-content {
+    padding: var(--space-4);
+    min-height: 100px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.artifact-preview iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    min-height: 200px;
+}
+
+/* Output Display */
+.artifact-output {
+    background-color: var(--color-gray-50);
+    border-top: 1px solid var(--color-gray-200);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+    padding: var(--space-3);
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow-y: auto;
+    color: var(--color-gray-800);
+}
+
+.artifact-output.error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--color-error);
+    border-top-color: var(--color-error);
+}
+
+.artifact-output.success {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--color-success);
+    border-top-color: var(--color-success);
+}
+
+/* Status Indicators */
+.artifact-status {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    z-index: 1;
+}
+
+.artifact-status.idle {
+    background-color: var(--color-gray-400);
+}
+
+.artifact-status.running {
+    background-color: var(--color-warning);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.artifact-status.success {
+    background-color: var(--color-success);
+}
+
+.artifact-status.error {
+    background-color: var(--color-error);
+}
+
+/* Tabs */
+.artifact-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--color-gray-200);
+    background-color: var(--color-gray-50);
+}
+
+.artifact-tab {
+    padding: var(--space-2) var(--space-3);
+    border: none;
+    background: transparent;
+    color: var(--color-gray-600);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition-fast);
+    flex: 1;
+    text-align: center;
+}
+
+.artifact-tab.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    background-color: var(--color-white);
+}
+
+.artifact-tab:hover:not(.active) {
+    color: var(--color-gray-800);
+    background-color: var(--color-gray-100);
+}
+
+/* Data Table */
+.artifact-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+    margin-top: var(--space-2);
+}
+
+.artifact-table th,
+.artifact-table td {
+    padding: var(--space-2) var(--space-3);
+    text-align: left;
+    border-bottom: 1px solid var(--color-gray-200);
+}
+
+.artifact-table th {
+    background-color: var(--color-gray-50);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-gray-700);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.artifact-table tr:hover {
+    background-color: var(--color-gray-50);
+}
+
+/* Chart Container */
+.artifact-chart {
+    padding: var(--space-4);
+    background-color: var(--color-white);
+}
+
+.artifact-chart canvas {
+    max-height: 300px;
+}
+
+/* Form Preview */
+.artifact-form {
+    padding: var(--space-4);
+}
+
+.artifact-form .form-group {
+    margin-bottom: var(--space-3);
+}
+
+.artifact-form label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-gray-700);
+    margin-bottom: var(--space-1);
+}
+
+.artifact-form input,
+.artifact-form select,
+.artifact-form textarea {
+    width: 100%;
+    padding: var(--space-2);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+}
+
+.artifact-form button {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    transition: background-color var(--transition-fast);
+}
+
+.artifact-form button:hover {
+    background-color: var(--color-primary-dark);
+}
+
+/* Empty State */
+.artifacts-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    text-align: center;
+    color: var(--color-gray-500);
+}
+
+.artifacts-empty svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: var(--space-4);
+    opacity: 0.5;
+}
+
+.artifacts-empty h4 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--space-2);
+}
+
+.artifacts-empty p {
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-relaxed);
+}
+
+/* Resize Handle */
+.artifacts-resize-handle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    cursor: col-resize;
+    background-color: transparent;
+    transition: background-color var(--transition-fast);
+}
+
+.artifacts-resize-handle:hover {
+    background-color: var(--color-primary);
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .artifacts-panel {
+        width: 350px;
+    }
+}
+
+@media (max-width: 768px) {
+    .artifacts-panel {
+        position: fixed;
+        top: var(--header-height);
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: 400px;
+        z-index: 100;
+        transform: translateX(100%);
+        transition: transform var(--transition-base);
+    }
+    
+    .artifacts-panel.visible {
+        transform: translateX(0);
+    }
+    
+    .artifacts-panel.hidden {
+        width: 100%;
+        border-left: 1px solid var(--color-gray-200);
+    }
+    
+    .artifact-code {
+        font-size: var(--font-size-xs);
+    }
+    
+    .artifact-preview-content {
+        padding: var(--space-2);
+    }
+    
+    .artifact-table {
+        font-size: var(--font-size-xs);
+    }
+    
+    .artifact-table th,
+    .artifact-table td {
+        padding: var(--space-1) var(--space-2);
+    }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    .artifact-code {
+        background-color: var(--color-gray-900);
+        color: var(--color-gray-100);
+    }
+    
+    .artifact-editor-header {
+        background-color: var(--color-gray-800);
+    }
+    
+    .artifact-output {
+        background-color: var(--color-gray-800);
+        color: var(--color-gray-200);
+    }
+}

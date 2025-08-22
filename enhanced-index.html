@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Studio - Enhanced Jupyter Notebook</title>
+    <link rel="stylesheet" href="src/styles/enhanced-main.css">
+    <link rel="stylesheet" href="src/styles/enhanced-chat.css">
+    <link rel="stylesheet" href="src/styles/enhanced-artifacts.css">
+    <link rel="icon" type="image/png" href="src/assets/favicon.png">
+    <meta name="theme-color" content="#1FB8CD">
+    <meta name="description" content="AI-powered code generation and execution notebook with multi-language support">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Processing...</div>
+    </div>
+
+    <!-- Main Application -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="8" fill="#1FB8CD"/>
+                        <path d="M8 12h16v2H8v-2zm0 6h16v2H8v-2z" fill="white"/>
+                        <circle cx="12" cy="20" r="2" fill="white"/>
+                        <circle cx="20" cy="20" r="2" fill="white"/>
+                        <path d="M16 8l4 4-4 4" stroke="white" stroke-width="2" fill="none"/>
+                    </svg>
+                    <span>AI Code Studio</span>
+                </div>
+                <h1 id="notebook-title" contenteditable="true">Enhanced AI Notebook</h1>
+            </div>
+            <div class="header-actions">
+                <button id="new-chat-btn" class="btn btn--primary" title="New Chat">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <path d="M12 3v12l-3-3m6 0l-3 3"></path>
+                    </svg>
+                    New Chat
+                </button>
+                <button id="upload-btn" class="btn btn--secondary" title="Upload files">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Upload
+                </button>
+                <button id="save-btn" class="btn btn--secondary" title="Save notebook">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Save
+                </button>
+                <button id="export-btn" class="btn btn--secondary" title="Export notebook">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    Export
+                </button>
+                <button id="settings-btn" class="btn btn--secondary" title="Settings">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1m20-6h-6M7 7h6"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="app-main">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <!-- AI Models Section -->
+                <div class="sidebar-section">
+                    <h3>AI Models</h3>
+                    <div class="ai-models-list">
+                        <div class="ai-model-item" data-model="gpt-4">
+                            <span class="model-icon">🤖</span>
+                            <span class="model-name">GPT-4</span>
+                            <span class="model-status" id="gpt4-status">●</span>
+                        </div>
+                        <div class="ai-model-item" data-model="claude-3">
+                            <span class="model-icon">🧠</span>
+                            <span class="model-name">Claude 3</span>
+                            <span class="model-status" id="claude-status">●</span>
+                        </div>
+                        <div class="ai-model-item" data-model="gemini-pro">
+                            <span class="model-icon">✨</span>
+                            <span class="model-name">Gemini Pro</span>
+                            <span class="model-status" id="gemini-status">●</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Sources Section -->
+                <div class="sidebar-section">
+                    <h3>Data Sources</h3>
+                    <div class="data-sources-list">
+                        <button class="data-source-btn" data-type="database">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                            </svg>
+                            Database
+                        </button>
+                        <button class="data-source-btn" data-type="google-sheets">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="9" y1="9" x2="9" y2="21"></line>
+                                <line x1="15" y1="9" x2="15" y2="21"></line>
+                                <line x1="3" y1="9" x2="21" y2="9"></line>
+                                <line x1="3" y1="15" x2="21" y2="15"></line>
+                            </svg>
+                            Google Sheets
+                        </button>
+                        <button class="data-source-btn" data-type="api">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path>
+                                <path d="M12 15l8.5-8.5c.83-.83.83-2.17 0-3s-2.17-.83-3 0L9 12l3 3z"></path>
+                                <path d="M9 12l-3 3-3-3 3-3 3 3z"></path>
+                            </svg>
+                            API
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Files Section -->
+                <div class="sidebar-section">
+                    <h3>Files & Artifacts</h3>
+                    <div id="file-list" class="file-list">
+                        <div class="file-item" data-file="sample_data.csv">
+                            <span class="file-icon">📊</span>
+                            <span class="file-name">sample_data.csv</span>
+                            <span class="file-size">2.1 KB</span>
+                        </div>
+                        <div class="file-item" data-file="config.json">
+                            <span class="file-icon">📄</span>
+                            <span class="file-name">config.json</span>
+                            <span class="file-size">1.2 KB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat History -->
+                <div class="sidebar-section">
+                    <h3>Chat History</h3>
+                    <div id="chat-history-list" class="chat-history-list">
+                        <div class="chat-history-item active" data-chat="current">
+                            <span class="chat-icon">💬</span>
+                            <span class="chat-name">Current Session</span>
+                            <span class="chat-time">Now</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chat Interface -->
+            <main class="chat-container">
+                <div id="chat-messages" class="chat-messages">
+                    <!-- Welcome message -->
+                    <div class="message-container system-message">
+                        <div class="message-content">
+                            <h2>🚀 Welcome to AI Code Studio</h2>
+                            <p>An advanced Jupyter-like notebook with AI code generation capabilities.</p>
+                            <div class="feature-highlights">
+                                <div class="feature-item">
+                                    <span>🤖</span> Multi-AI model support (GPT-4, Claude, Gemini)
+                                </div>
+                                <div class="feature-item">
+                                    <span>💻</span> Multi-language code execution (Python, JS, HTML, CSS, SQL)
+                                </div>
+                                <div class="feature-item">
+                                    <span>📊</span> Data source integration (Databases, Google Sheets, APIs)
+                                </div>
+                                <div class="feature-item">
+                                    <span>🎨</span> UI component generation and live preview
+                                </div>
+                                <div class="feature-item">
+                                    <span>📁</span> Artifact management with inline editing
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                        <textarea 
+                            id="chat-input" 
+                            placeholder="Describe what you want to create: code, UI components, data analysis, forms, or database queries..."
+                            rows="3"
+                        ></textarea>
+                        <div class="chat-input-actions">
+                            <div class="input-options">
+                                <label class="option-checkbox">
+                                    <input type="checkbox" id="generate-code" checked>
+                                    <span>Generate Code</span>
+                                </label>
+                                <label class="option-checkbox">
+                                    <input type="checkbox" id="create-ui">
+                                    <span>Create UI</span>
+                                </label>
+                                <label class="option-checkbox">
+                                    <input type="checkbox" id="analyze-data">
+                                    <span>Analyze Data</span>
+                                </label>
+                                <select id="ai-model-select" class="model-select">
+                                    <option value="gpt-4">GPT-4</option>
+                                    <option value="claude-3">Claude 3</option>
+                                    <option value="gemini-pro">Gemini Pro</option>
+                                </select>
+                            </div>
+                            <button id="send-btn" class="btn btn--primary send-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                                </svg>
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Artifacts Panel -->
+            <aside class="artifacts-panel" id="artifacts-panel">
+                <div class="artifacts-header">
+                    <h3>Artifacts</h3>
+                    <button id="close-artifacts" class="btn btn--sm btn--secondary">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div id="artifacts-content" class="artifacts-content">
+                    <!-- Artifacts will be rendered here -->
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Hidden File Input -->
+    <input type="file" id="file-upload" multiple accept=".csv,.json,.txt,.xlsx,.py,.js,.html,.css,.sql" style="display: none;">
+
+    <!-- Modals -->
+    
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button id="close-settings-modal" class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-tabs">
+                    <button class="settings-tab active" data-tab="api-keys">API Keys</button>
+                    <button class="settings-tab" data-tab="data-sources">Data Sources</button>
+                    <button class="settings-tab" data-tab="preferences">Preferences</button>
+                </div>
+                
+                <div class="settings-content">
+                    <!-- API Keys Tab -->
+                    <div class="settings-tab-content active" data-tab-content="api-keys">
+                        <div class="form-group">
+                            <label for="openai-key">OpenAI API Key:</label>
+                            <input type="password" id="openai-key" class="form-control" placeholder="sk-...">
+                            <small>Required for GPT-4 and GPT-3.5 models</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="anthropic-key">Anthropic API Key:</label>
+                            <input type="password" id="anthropic-key" class="form-control" placeholder="sk-ant-...">
+                            <small>Required for Claude models</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="google-key">Google AI API Key:</label>
+                            <input type="password" id="google-key" class="form-control" placeholder="AI...">
+                            <small>Required for Gemini models</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Data Sources Tab -->
+                    <div class="settings-tab-content" data-tab-content="data-sources">
+                        <div class="form-group">
+                            <label for="database-url">Database Connection URL:</label>
+                            <input type="text" id="database-url" class="form-control" placeholder="postgresql://user:password@host:port/database">
+                        </div>
+                        <div class="form-group">
+                            <label for="google-sheets-key">Google Sheets API Key:</label>
+                            <input type="password" id="google-sheets-key" class="form-control" placeholder="Google Sheets API Key">
+                        </div>
+                        <div class="form-group">
+                            <label for="custom-api-endpoint">Custom API Endpoint:</label>
+                            <input type="text" id="custom-api-endpoint" class="form-control" placeholder="https://api.example.com">
+                        </div>
+                    </div>
+                    
+                    <!-- Preferences Tab -->
+                    <div class="settings-tab-content" data-tab-content="preferences">
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="auto-execute" checked>
+                                Auto-execute generated code
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="auto-save" checked>
+                                Auto-save artifacts
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="show-artifacts" checked>
+                                Show artifacts panel by default
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label for="default-language">Default Code Language:</label>
+                            <select id="default-language" class="form-control">
+                                <option value="python">Python</option>
+                                <option value="javascript">JavaScript</option>
+                                <option value="html">HTML</option>
+                                <option value="css">CSS</option>
+                                <option value="sql">SQL</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="test-connections" class="btn btn--secondary">Test Connections</button>
+                <button id="save-settings" class="btn btn--primary">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Source Modal -->
+    <div id="data-source-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Connect Data Source</h2>
+                <button id="close-data-source-modal" class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="data-source-form">
+                    <!-- Dynamic content based on data source type -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-data-source" class="btn btn--secondary">Cancel</button>
+                <button id="connect-data-source" class="btn btn--primary">Connect</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Export Notebook</h2>
+                <button id="close-export-modal" class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="export-options">
+                    <label class="export-option">
+                        <input type="radio" name="export-format" value="notebook" checked>
+                        <span>Notebook (.json)</span>
+                        <small>Complete notebook with chat history and artifacts</small>
+                    </label>
+                    <label class="export-option">
+                        <input type="radio" name="export-format" value="html">
+                        <span>HTML Document</span>
+                        <small>Static HTML with embedded code and outputs</small>
+                    </label>
+                    <label class="export-option">
+                        <input type="radio" name="export-format" value="pdf">
+                        <span>PDF Document</span>
+                        <small>Printable PDF report</small>
+                    </label>
+                    <label class="export-option">
+                        <input type="radio" name="export-format" value="zip">
+                        <span>Code Archive (.zip)</span>
+                        <small>All generated code files in a zip archive</small>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-export" class="btn btn--secondary">Cancel</button>
+                <button id="download-export" class="btn btn--primary">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.min.js"></script>
+    <script src="src/js/enhanced-app.js"></script>
+</body>
+</html>

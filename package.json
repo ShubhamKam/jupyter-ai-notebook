@@ -1,12 +1,14 @@
 {
-  "name": "jupyter-ai-notebook",
-  "version": "1.0.0",
-  "description": "AI-powered block-based notebook application",
+  "name": "ai-code-studio",
+  "version": "2.0.0",
+  "description": "AI-powered code generation and execution notebook with multi-language support",
   "main": "index.html",
   "scripts": {
     "start": "http-server . -p 3000 -c-1",
     "build": "npm run copy-assets && npm run optimize",
+    "build:enhanced": "npm run copy-enhanced && npm run optimize",
     "copy-assets": "mkdir -p dist && cp -r src/* dist/ && cp index.html dist/",
+    "copy-enhanced": "mkdir -p dist && cp -r src/* dist/ && cp enhanced-index.html dist/index.html",
     "optimize": "echo 'Build optimization complete'",
     "cap:init": "npx cap init jupyter-ai-notebook com.jupyterai.notebook",
     "cap:add:android": "npx cap add android",
@@ -16,7 +18,7 @@
     "test": "echo 'Tests will be added'",
     "lint": "echo 'Linting will be added'"
   },
-  "keywords": ["ai", "notebook", "jupyter", "mobile", "data-science"],
+  "keywords": ["ai", "code-generation", "jupyter", "mobile", "data-science", "artifacts", "multi-language", "execution"],
   "author": "Jupyter AI Team",
   "license": "MIT",
   "dependencies": {
@@ -35,8 +37,8 @@
     "typescript": "^5.0.0"
   },
   "capacitor": {
-    "appId": "com.jupyterai.notebook",
-    "appName": "Jupyter AI Notebook",
+    "appId": "com.aicodestudio.app",
+    "appName": "AI Code Studio",
     "webDir": "dist",
     "server": {
       "androidScheme": "https"

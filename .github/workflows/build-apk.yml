@@ -44,7 +44,7 @@ jobs:
       
     - name: Build web assets
       run: |
-        npm run build
+        npm run build:enhanced
         ls -la dist/
         
     - name: Setup Capacitor
@@ -79,7 +79,7 @@ jobs:
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
-        name: jupyter-ai-notebook-apk
+        name: ai-code-studio-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
         
@@ -93,7 +93,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/v')
       uses: actions/upload-artifact@v4
       with:
-        name: jupyter-ai-notebook-release-apk
+        name: ai-code-studio-release-apk
         path: android/app/build/outputs/apk/release/app-release-unsigned.apk
         retention-days: 90
         
