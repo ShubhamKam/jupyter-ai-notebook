@@ -59,9 +59,11 @@ function executeCommand(command, attachments, timeout = 30000) {
                 PATH: '/data/data/com.termux/files/usr/bin:/data/data/com.termux/files/home/.local/bin:' + (process.env.PATH || ''),
                 TERMUX_VERSION: process.env.TERMUX_VERSION || '1',
                 HOME: '/data/data/com.termux/files/home',
-                SHELL: '/data/data/com.termux/files/usr/bin/bash'
+                SHELL: '/data/data/com.termux/files/usr/bin/bash',
+                NODE_PATH: '/data/data/com.termux/files/usr/lib/node_modules',
+                TERMUX: '1'
             },
-            cwd: workingDir,
+            cwd: '/data/data/com.termux/files/home',
             shell: '/data/data/com.termux/files/usr/bin/bash'
         }, (error, stdout, stderr) => {
             if (error) {
@@ -179,12 +181,10 @@ const server = http.createServer(async (req, res) => {
                     return;
                 }
 
-                // Use full claude path to ensure it's found
+                // Use claude command as-is (let PATH resolve it)
                 let processedCommand = command;
-                // Only replace standalone 'claude' commands, not if already a full path
-                if (!command.includes('/claude')) {
-                    processedCommand = command.replace(/\bclaude\b/g, '/data/data/com.termux/files/usr/bin/claude');
-                }
+                // Ensure we're using simple 'claude' command for better module resolution
+                processedCommand = command.replace(/\/.*\/claude/g, 'claude');
 
                 const result = await executeCommand(processedCommand, attachments);
                 
@@ -216,7 +216,7 @@ const server = http.createServer(async (req, res) => {
     } else if (req.method === 'GET' && parsedUrl.pathname === '/api/health') {
         // Health check endpoint
         try {
-            const result = await executeCommand('/data/data/com.termux/files/usr/bin/claude --version');
+            const result = await executeCommand('claude --version');
             res.writeHead(200);
             res.end(JSON.stringify({
                 status: 'healthy',
