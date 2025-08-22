@@ -13,6 +13,8 @@
     "copy-fixed": "mkdir -p dist && cp -r src/* dist/ && cp fixed-index.html dist/index.html && cp src/styles/fixed-artifacts.css dist/styles/",
     "build:working": "npm run copy-working && npm run optimize",
     "copy-working": "mkdir -p dist && cp working-index.html dist/index.html",
+    "build:full": "npm run copy-full && npm run optimize",
+    "copy-full": "mkdir -p dist && cp full-ai-notebook.html dist/index.html && cp code-executor.py dist/",
     "optimize": "echo 'Build optimization complete'",
     "cap:init": "npx cap init jupyter-ai-notebook com.jupyterai.notebook",
     "cap:add:android": "npx cap add android",
